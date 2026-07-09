@@ -29,9 +29,11 @@ export const router = createBrowserRouter([
       { path: 'empresas', element: <Navigate to="/certificados" replace /> },
       { path: 'certificados', element: <Certificados /> },
       { path: 'notas', element: <NotasConsultadas /> },
+      { path: 'nfse', element: <NotasConsultadas /> },
       { path: 'fila', element: <Fila /> },
       { path: 'processos', element: <Processos /> },
       { path: 'configuracoes', element: <Configuracoes /> },
+      { path: '*', element: <Navigate to="/dashboard" replace /> },
     ],
   },
 ]);

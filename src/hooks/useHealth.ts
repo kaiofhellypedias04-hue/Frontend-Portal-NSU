@@ -10,6 +10,6 @@ export function useHealth() {
     apiHealth,
     dbHealth,
     storageHealth,
-    online: apiHealth.isSuccess && dbHealth.isSuccess && storageHealth.isSuccess,
+    online: apiHealth.isSuccess,
   };
 }

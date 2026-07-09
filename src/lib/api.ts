@@ -44,6 +44,10 @@ const DOWNLOAD_TIMEOUT_MS = 120_000;
 const NOTAS_PAGE_SIZE = 500;
 const DOWNLOAD_CHUNK_SIZE = 1000;
 
+if (import.meta.env.DEV) {
+  console.info('[API] Base URL:', API_BASE_URL || '(VITE_API_BASE_URL nao configurada)');
+}
+
 export class ApiError extends Error {
   status?: number;
   code: 'offline' | 'timeout' | 'http' | 'parse';
@@ -62,7 +66,8 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
   if (!API_BASE_URL) {
     throw new ApiError('VITE_API_BASE_URL nao configurada. Defina a URL do backend no .env do frontend.', 'offline', 0);
   }
-  const url = new URL(`${API_BASE_URL}${path}`);
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  const url = new URL(`${API_BASE_URL}${cleanPath}`);
   Object.entries(params || {}).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {
       url.searchParams.set(key, String(value));
@@ -107,7 +112,7 @@ async function request<T>(path: string, options?: RequestInit & { params?: Recor
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiError('Tempo limite ao conectar no backend. Verifique se a API esta respondendo.', 'timeout', undefined, error);
     }
-    throw new ApiError('Nao foi possivel conectar ao backend. Verifique se ele esta rodando e se o CORS esta configurado.', 'offline', 0, error);
+    throw new ApiError('Falha ao conectar na API. Verifique VITE_API_BASE_URL e possivel bloqueio de CORS ou API indisponivel.', 'offline', 0, error);
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -168,7 +173,7 @@ async function requestBlob(
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiError('Tempo limite ao gerar o ZIP. Tente reduzir os filtros ou confira os logs da API.', 'timeout', undefined, error);
     }
-    throw new ApiError('Nao foi possivel conectar ao backend para baixar o ZIP.', 'offline', 0, error);
+    throw new ApiError('Falha ao conectar na API para baixar o ZIP. Verifique VITE_API_BASE_URL e possivel bloqueio de CORS ou API indisponivel.', 'offline', 0, error);
   } finally {
     window.clearTimeout(timeoutId);
   }
