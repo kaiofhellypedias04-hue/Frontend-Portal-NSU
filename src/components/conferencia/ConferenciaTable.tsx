@@ -5,8 +5,6 @@ import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
 import { InfiniteScrollSentinel } from '../ui/InfiniteScrollSentinel';
 import { ResizableDataTable, type ResizableDataColumn } from '../ui/ResizableDataTable';
-import { useCertificados } from '../../hooks/useCertificados';
-import { useEmpresas } from '../../hooks/useEmpresas';
 import { formatCnpj, formatCurrency, formatDate, formatDateTime, formatServiceCode } from '../../lib/format';
 import type { Nota } from '../../types/api';
 import { badgeTone, conferenciaLabel, displayValue, notaNumero, notaValor, tipoNotaLabel } from './conferenciaUtils';
@@ -35,10 +33,6 @@ function CellText({ children, className = '' }: { children: ReactNode; className
   return <div className={`truncate ${className}`}>{children}</div>;
 }
 
-function isGeneratedEmpresaLabel(value?: string | null) {
-  return !value || /^Empresa #\d+$/i.test(value.trim());
-}
-
 function isConferenciaOk(nota: Nota) {
   return String(nota.conferencia_status || '').toLowerCase() === 'ok';
 }
@@ -51,7 +45,7 @@ function isConferenciaObservacao(nota: Nota) {
   return String(nota.conferencia_status || '').toLowerCase() === 'observacao';
 }
 
-function createConferenciaColumns(resolveEmpresaName: (nota: Nota) => string | null): ConferenciaColumn[] {
+function createConferenciaColumns(): ConferenciaColumn[] {
   return [
   {
     key: 'numero',
@@ -65,7 +59,18 @@ function createConferenciaColumns(resolveEmpresaName: (nota: Nota) => string | n
   { key: 'tipo_nota', label: 'Tipo', width: 105, render: (nota) => <CompactBadge value={tipoNotaLabel(nota.tipo_nota)} /> },
   { key: 'competencia', label: 'Competencia', width: 125, minWidth: 44, align: 'center', render: (nota) => formatDate(nota.competencia) },
   { key: 'data_emissao', label: 'Data de emissao', width: 135, minWidth: 44, align: 'center', render: (nota) => formatDate(nota.data_emissao) },
-  { key: 'empresa', label: 'Tomador', width: 260, minWidth: 36, render: (nota) => <CellText>{displayValue(resolveEmpresaName(nota))}</CellText> },
+  {
+    key: 'tomador',
+    label: 'Tomador',
+    width: 260,
+    minWidth: 36,
+    render: (nota) => (
+      <>
+        <CellText className="font-medium text-slate-100">{displayValue(nota.tomador_nome || 'Nao informado no XML')}</CellText>
+        <div className="truncate text-xs text-textSoft">{formatCnpj(nota.tomador_cnpj)}</div>
+      </>
+    ),
+  },
   {
     key: 'prestador',
     label: 'Prestador',
@@ -116,32 +121,7 @@ export function ConferenciaTable({
   emptyDescription?: string;
 }) {
   const [maximized, setMaximized] = useState(false);
-  const { data: empresas = [] } = useEmpresas();
-  const { data: certificados = [] } = useCertificados();
-
-  const empresaNameById = useMemo(() => {
-    const names = new Map<number, string>();
-
-    for (const empresa of empresas) {
-      if (empresa.nome) {
-        names.set(empresa.id, empresa.nome);
-      }
-    }
-
-    for (const certificado of certificados) {
-      if (certificado.nome) {
-        names.set(certificado.empresa_id, certificado.nome);
-      }
-    }
-
-    return names;
-  }, [certificados, empresas]);
-
-  const columns = useMemo(() => createConferenciaColumns((nota) => {
-    const resolvedName = empresaNameById.get(nota.empresa_id);
-    if (resolvedName) return resolvedName;
-    return isGeneratedEmpresaLabel(nota.empresa_nome) ? null : nota.empresa_nome ?? null;
-  }), [empresaNameById]);
+  const columns = useMemo(() => createConferenciaColumns(), []);
   const tableColumns = useMemo<ConferenciaColumn[]>(() => [
     {
       key: 'conferencia_indicador',

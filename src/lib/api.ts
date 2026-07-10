@@ -1,5 +1,6 @@
 import type {
   Arquivo,
+  ArquivoDownloadResponse,
   CertificadoAutocadastroResponse,
   Certificado,
   CertificadoSenhaPayload,
@@ -198,6 +199,47 @@ async function requestBlob(
   const blob = await response.blob();
   const filename = parseDownloadFilename(response.headers.get('content-disposition')) || fallbackFilename;
   return { blob, filename };
+}
+
+async function requestArquivoBlob(path: string, fallbackFilename = 'arquivo'): Promise<ArquivoDownloadResponse> {
+  const url = buildUrl(path);
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS);
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        Accept: 'application/pdf, application/xml, text/xml, */*',
+        ...operatorHeaders(),
+      },
+    });
+  } catch (error) {
+    console.error('Falha na chamada HTTP', { url, error });
+    if (error instanceof DOMException && error.name === 'AbortError') {
+      throw new ApiError('Tempo limite ao abrir o arquivo. Tente novamente.', 'timeout', undefined, error);
+    }
+    throw new ApiError('Falha ao conectar na API para abrir o arquivo. Verifique VITE_API_BASE_URL e possivel bloqueio de CORS ou API indisponivel.', 'offline', 0, error);
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+
+  if (!response.ok) {
+    let detail: unknown;
+    try {
+      detail = await response.text();
+    } catch {
+      detail = undefined;
+    }
+    console.error('Erro HTTP na API', { url, status: response.status, detail });
+    throw new ApiError(friendlyHttpMessage(response.status, detail), 'http', response.status, detail);
+  }
+
+  const blob = await response.blob();
+  const filename = parseDownloadFilename(response.headers.get('content-disposition')) || fallbackFilename;
+  const contentType = response.headers.get('content-type') || blob.type || 'application/octet-stream';
+  return { blob, filename, contentType };
 }
 
 function buildNotasDownloadFiltros(filters?: NotasFilters) {
@@ -435,7 +477,7 @@ function normalizePrioridade(value?: string | boolean | null) {
 
 function normalizeNota(nota: Nota): Nota {
   const normalized = normalizeDates(nota);
-  const numero = normalized.numero_nota ?? normalized.numero_nfse ?? normalized.numero ?? null;
+  const numero = normalized.numero_nfse ?? normalized.numero_nota ?? normalized.numero ?? null;
   const status = normalized.status ?? normalized.status_documento ?? normalized.status_nota ?? null;
   const simplesXml = normalized.simples_xml ?? normalized.simples_nacional ?? normalized.simples_nacional_xml ?? null;
   const statusFila = normalized.status_fila_final ?? normalized.status_fila ?? normalized.status ?? normalized.divergencia ?? null;
@@ -454,6 +496,8 @@ function normalizeNota(nota: Nota): Nota {
     tomador_cnpj: normalized.tomador_cnpj ?? normalized.cnpj_tomador ?? null,
     cnpj_prestador: normalized.cnpj_prestador ?? normalized.prestador_cnpj ?? null,
     cnpj_tomador: normalized.cnpj_tomador ?? normalized.tomador_cnpj ?? null,
+    prestador_nome: normalized.prestador_nome ?? normalized.prestador ?? null,
+    tomador_nome: normalized.tomador_nome ?? normalized.tomador ?? null,
     codigo_servico: formatServiceCode(normalized.codigo_servico),
     valor_servico: normalized.valor_servico ?? normalized.valor ?? null,
     status,
@@ -657,6 +701,7 @@ export const api = {
   getNotaTributosComparativo: (notaId: string | number) => request<TributoComparativoItem[] | { items?: TributoComparativoItem[] }>(`/notas/${notaId}/tributos-comparativo`).then(extractItems),
   listarTributosComparativoNota: (notaId: number) => request<NotaTributoComparativo[] | { items?: NotaTributoComparativo[] }>(`/notas/${notaId}/tributos-comparativo`).then(extractItems),
   arquivoDownloadUrl: (arquivoId: number) => buildUrl(`/arquivos/${arquivoId}/download`),
+  baixarArquivo: (arquivoId: number, fallbackFilename?: string) => requestArquivoBlob(`/arquivos/${arquivoId}/download`, fallbackFilename),
   getProcessoArquivos: (processoId: string | number, filters?: { tipo?: string }) =>
     request<ProcessoArquivo[] | { items?: ProcessoArquivo[] }>(`/processos/${processoId}/arquivos`, { params: filters }).then((response) => extractItems(response).map(normalizeArquivo)),
   listarArquivosProcesso: (processoId: number, filters?: { tipo?: string }) =>

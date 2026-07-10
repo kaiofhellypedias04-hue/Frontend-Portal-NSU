@@ -23,6 +23,7 @@ export function CertificadoUploadForm() {
   const [ambiente, setAmbiente] = useState<'producao' | 'homologacao'>('producao');
   const [autoIniciar, setAutoIniciar] = useState(true);
   const [limite, setLimite] = useState('100');
+  const [nsuInicio, setNsuInicio] = useState('');
   const [forcar, setForcar] = useState(false);
   const [file, setFile] = useState<File | null>(null);
 
@@ -39,12 +40,16 @@ export function CertificadoUploadForm() {
     formData.append('ambiente', ambiente);
     formData.append('auto_iniciar', String(autoIniciar));
     formData.append('limite', limite.trim() || '100');
+    if (nsuInicio.trim()) {
+      formData.append('nsu_inicio', nsuInicio.trim());
+    }
     formData.append('forcar', String(forcar));
 
     await autocadastrar.mutateAsync(formData);
     setSenha('');
     setFile(null);
     setForcar(false);
+    setNsuInicio('');
   }
 
   const response = autocadastrar.data;
@@ -81,6 +86,18 @@ export function CertificadoUploadForm() {
         <label>
           <span className="label">Limite por consulta</span>
           <input className="field" type="number" min={1} value={limite} onChange={(event) => setLimite(event.target.value)} placeholder="Padrao do sistema" />
+        </label>
+
+        <label>
+          <span className="label">NSU recomendado pelo usuario</span>
+          <input
+            className="field"
+            type="number"
+            min={0}
+            value={nsuInicio}
+            onChange={(event) => setNsuInicio(event.target.value)}
+            placeholder="Numero do NSU"
+          />
         </label>
 
         <label className="flex items-center gap-3 rounded-xl border border-borderSoft bg-slate-950/30 px-3 py-3">

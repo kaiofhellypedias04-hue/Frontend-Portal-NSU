@@ -147,8 +147,10 @@ export type Nota = {
   competencia?: string | null;
   prestador_cnpj?: string | null;
   prestador_nome?: string | null;
+  prestador?: string | null;
   tomador_cnpj?: string | null;
   tomador_nome?: string | null;
+  tomador?: string | null;
   municipio?: string | null;
   municipio_prestacao?: string | null;
   codigo_servico?: string | null;
@@ -468,4 +470,10 @@ export type NotasDownloadLoteOptions = {
 export type NotasDownloadLoteResponse = {
   blob: Blob;
   filename: string;
+};
+
+export type ArquivoDownloadResponse = {
+  blob: Blob;
+  filename: string;
+  contentType: string;
 };

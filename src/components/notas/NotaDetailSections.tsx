@@ -47,11 +47,101 @@ function formatBytes(value?: number | null) {
   return `${(value / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function DocumentCard({ kind, arquivo }: { kind: 'xml' | 'pdf' | 'outro'; arquivo?: Arquivo }) {
+function sanitizeFilename(value: string) {
+  return value.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '_').replace(/\s+/g, ' ').trim();
+}
+
+function isAccessKeyFilename(value?: string | null) {
+  return Boolean(value && /^\d{30,}\.(pdf|xml)$/i.test(value.trim()));
+}
+
+function extensionForArquivo(kind: 'xml' | 'pdf' | 'outro', arquivo?: Arquivo) {
+  const filename = arquivo?.filename || arquivo?.nome || '';
+  const filenameExtension = filename.match(/\.([a-z0-9]{2,8})$/i)?.[1];
+  if (filenameExtension) return filenameExtension.toLowerCase();
+  if (kind === 'xml') return 'xml';
+  if (kind === 'pdf') return 'pdf';
+  return 'bin';
+}
+
+function arquivoDisplayName(kind: 'xml' | 'pdf' | 'outro', arquivo: Arquivo | undefined, nota: Nota) {
+  if (!arquivo) return kind === 'outro' ? 'Arquivo nao disponivel' : `${kind.toUpperCase()} nao disponivel`;
+
+  const currentName = arquivo.filename || arquivo.nome;
+  const tipo = String(arquivo.tipo || '').toLowerCase();
+  const ext = extensionForArquivo(kind, arquivo);
+  const numero = nota.numero_nfse || nota.numero_nota || nota.numero || nota.id;
+
+  if (kind === 'pdf' || tipo.includes('pdf')) {
+    return sanitizeFilename(`NFS-e ${numero}.${ext}`);
+  }
+
+  if (currentName && !isAccessKeyFilename(currentName)) {
+    return currentName;
+  }
+
+  const prefix = kind === 'xml' ? 'XML' : arquivo.tipo || 'Arquivo';
+
+  return sanitizeFilename(`${prefix} - NFS-e ${numero}.${ext}`);
+}
+
+function saveBlob(blob: Blob, filename: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+}
+
+function DocumentCard({ kind, arquivo, nota }: { kind: 'xml' | 'pdf' | 'outro'; arquivo?: Arquivo; nota: Nota }) {
+  const [action, setAction] = useState<'view' | 'download' | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const Icon = kind === 'xml' ? FileCode2 : FileText;
   const label = kind === 'outro' ? arquivo?.tipo || 'Arquivo' : kind.toUpperCase();
   const available = Boolean(arquivo?.id);
-  const href = available ? api.arquivoDownloadUrl(arquivo!.id) : undefined;
+  const displayName = arquivoDisplayName(kind, arquivo, nota);
+
+  async function viewArquivo() {
+    if (!arquivo?.id) return;
+    setError(null);
+    setAction('view');
+    const tab = window.open('', '_blank');
+    if (tab) {
+      tab.opener = null;
+    }
+    try {
+      const { blob } = await api.baixarArquivo(arquivo.id, displayName);
+      const blobUrl = window.URL.createObjectURL(blob);
+      if (tab) {
+        tab.location.href = blobUrl;
+      } else {
+        window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      }
+      window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (err) {
+      tab?.close();
+      setError(err instanceof Error ? err.message : 'Nao foi possivel abrir o arquivo.');
+    } finally {
+      setAction(null);
+    }
+  }
+
+  async function downloadArquivo() {
+    if (!arquivo?.id) return;
+    setError(null);
+    setAction('download');
+    try {
+      const { blob } = await api.baixarArquivo(arquivo.id, displayName);
+      saveBlob(blob, displayName);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nao foi possivel baixar o arquivo.');
+    } finally {
+      setAction(null);
+    }
+  }
 
   return (
     <div className="rounded-xl border border-borderSoft bg-slate-950/30 p-4">
@@ -62,30 +152,27 @@ function DocumentCard({ kind, arquivo }: { kind: 'xml' | 'pdf' | 'outro'; arquiv
           </div>
           <div className="min-w-0">
             <p className="font-semibold text-white">{label}</p>
-            <p className="truncate text-xs text-textSoft">{arquivo?.filename || arquivo?.nome || (available ? 'Arquivo disponivel' : 'Nao disponivel')}</p>
+            <p className="truncate text-xs text-textSoft" title={displayName}>{displayName}</p>
             <p className="mt-1 text-xs text-textSoft">Tamanho: {formatBytes(arquivo?.tamanho_bytes ?? arquivo?.size_bytes)}</p>
           </div>
         </div>
         <Badge value={available ? 'Disponivel' : 'Indisponivel'} tone={available ? 'success' : 'warning'} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        {href ? (
+        {available ? (
           <>
-            <a href={href} target="_blank" rel="noreferrer">
-              <Button variant="secondary" className="px-3">
-                <ExternalLink size={15} /> Ver
-              </Button>
-            </a>
-            <a href={href} download>
-              <Button variant="secondary" className="px-3">
-                <Download size={15} /> Baixar
-              </Button>
-            </a>
+            <Button variant="secondary" className="px-3" onClick={viewArquivo} disabled={action !== null}>
+              {action === 'view' ? <Loader2 className="animate-spin" size={15} /> : <ExternalLink size={15} />} Ver
+            </Button>
+            <Button variant="secondary" className="px-3" onClick={downloadArquivo} disabled={action !== null}>
+              {action === 'download' ? <Loader2 className="animate-spin" size={15} /> : <Download size={15} />} Baixar
+            </Button>
           </>
         ) : (
           <span className="text-sm text-textSoft">Arquivo ainda nao vinculado a esta nota.</span>
         )}
       </div>
+      {error ? <p className="mt-3 text-xs text-rose-200">{error}</p> : null}
     </div>
   );
 }
@@ -294,9 +381,9 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
               <div className="rounded-xl border border-dashed border-borderSoft p-4 text-sm text-textSoft">Nenhum documento disponivel para esta nota.</div>
             ) : null}
             <div className="grid gap-3 sm:grid-cols-2">
-              <DocumentCard kind="xml" arquivo={xml} />
-              <DocumentCard kind="pdf" arquivo={pdf} />
-              {outros.map((arquivo) => <DocumentCard key={arquivo.id} kind="outro" arquivo={arquivo} />)}
+              <DocumentCard kind="xml" arquivo={xml} nota={nota} />
+              <DocumentCard kind="pdf" arquivo={pdf} nota={nota} />
+              {outros.map((arquivo) => <DocumentCard key={arquivo.id} kind="outro" arquivo={arquivo} nota={nota} />)}
             </div>
           </>
         )}
