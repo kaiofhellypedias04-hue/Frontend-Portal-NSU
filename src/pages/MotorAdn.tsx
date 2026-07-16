@@ -31,6 +31,7 @@ export function MotorAdn() {
   const [certificadoIds, setCertificadoIds] = useState<number[]>([]);
   const [intervaloMinutos, setIntervaloMinutos] = useState('15');
   const [limite, setLimite] = useState('100');
+  const [nsuInicio, setNsuInicio] = useState('');
   const [forcar, setForcar] = useState(false);
 
   const certificadosFiltrados = useMemo(() => {
@@ -44,6 +45,7 @@ export function MotorAdn() {
       intervalo_minutos: numericValue(intervaloMinutos) || 15,
       empresa_ids: empresaIds,
       certificado_ids: certificadoIds,
+      nsu_inicio: numericValue(nsuInicio),
       limite: numericValue(limite),
       forcar,
     };
@@ -59,6 +61,7 @@ export function MotorAdn() {
     setCertificadoIds([]);
     setIntervaloMinutos('15');
     setLimite('100');
+    setNsuInicio('');
     setForcar(false);
   }
 
@@ -89,7 +92,7 @@ export function MotorAdn() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-4">
               <label>
                 <span className="label">Intervalo automatico (min)</span>
                 <input className="field" type="number" min={1} value={intervaloMinutos} onChange={(event) => setIntervaloMinutos(event.target.value)} />
@@ -97,6 +100,10 @@ export function MotorAdn() {
               <label>
                 <span className="label">Limite por certificado</span>
                 <input className="field" type="number" min={1} value={limite} onChange={(event) => setLimite(event.target.value)} />
+              </label>
+              <label>
+                <span className="label">NSU inicial (nova partida)</span>
+                <input className="field" type="number" min={0} value={nsuInicio} onChange={(event) => setNsuInicio(event.target.value)} placeholder="Continuar do atual" />
               </label>
               <label>
                 <span className="label">Modo</span>
@@ -161,7 +168,7 @@ export function MotorAdn() {
                 {iniciar.isPending ? <Loader2 className="animate-spin" size={16} /> : <PlayCircle size={16} />}
                 Iniciar com filtros
               </Button>
-              <Button type="button" variant="danger" onClick={() => desativar.mutate({ cancelar_pendentes: true, cancelar_rodando: false })} disabled={isPending || !live?.automaticoAtivo}>
+              <Button type="button" variant="danger" onClick={() => desativar.mutate({ cancelar_pendentes: true, cancelar_rodando: true })} disabled={isPending || (!live?.automaticoAtivo && !live?.consultando)}>
                 {desativar.isPending ? <Loader2 className="animate-spin" size={16} /> : <PowerOff size={16} />}
                 Desativar
               </Button>

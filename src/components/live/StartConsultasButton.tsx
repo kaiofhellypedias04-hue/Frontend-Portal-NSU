@@ -10,13 +10,13 @@ export function StartConsultasButton({ automaticoAtivo, disabled }: { automatico
   const successMessage = iniciar.isSuccess
     ? 'Motor ADN ativado: XML, PDF e importacao continuam ate desativar.'
     : desativar.isSuccess
-      ? 'Motor ADN desativado. Pendentes foram cancelados.'
+      ? 'Motor ADN desativado. Processos pendentes e em andamento foram cancelados.'
       : null;
 
   return (
     <div className="flex flex-col items-start gap-2 sm:items-end">
       {automaticoAtivo ? (
-        <Button variant="danger" onClick={() => desativar.mutate({ cancelar_pendentes: true, cancelar_rodando: false })} disabled={disabled || isPending}>
+        <Button variant="danger" onClick={() => desativar.mutate({ cancelar_pendentes: true, cancelar_rodando: true })} disabled={disabled || isPending}>
           {desativar.isPending ? <Loader2 className="animate-spin" size={16} /> : <PowerOff size={16} />}
           Desativar consultas
         </Button>
