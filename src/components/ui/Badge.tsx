@@ -15,7 +15,7 @@ export function statusTone(status?: string | null): Tone {
   const s = (status || '').toLowerCase();
   if (['ok', 'online', 'ativo', 'rodando', 'finalizado', 'normal', 'success'].includes(s)) return 'success';
   if (['pendente', 'aguardando', 'warning'].includes(s)) return 'warning';
-  if (['erro', 'offline', 'vencido', 'cancelado', 'cancelada', 'danger'].includes(s)) return 'danger';
+  if (['erro', 'offline', 'vencido', 'cancelado', 'cancelada', 'substituido', 'substituida', 'danger'].includes(s)) return 'danger';
   if (['restrita', 'producao', 'info'].includes(s)) return 'info';
   return 'muted';
 }
