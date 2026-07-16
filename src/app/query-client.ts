@@ -1,4 +1,5 @@
 import { QueryClient } from '@tanstack/react-query';
+import { setupPortalDataSync } from '../hooks/queryInvalidation';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -9,3 +10,5 @@ export const queryClient = new QueryClient({
     },
   },
 });
+
+setupPortalDataSync(queryClient);

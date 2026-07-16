@@ -3,16 +3,9 @@ import { api } from '../lib/api';
 import { cleanClientOnlyFiltersForApi, filterNotasByPortalFilters } from '../lib/notaFilters';
 import type { Nota, NotasFilters } from '../types/api';
 
-const COUNT_PAGE_SIZE = 500;
-const COUNT_MAX_PAGES = 200;
-
 function cleanCountFilters(filters?: NotasFilters): NotasFilters {
   const { limit: _limit, offset: _offset, ...rest } = filters || {};
-  return {
-    ...rest,
-    limit: COUNT_PAGE_SIZE,
-    offset: 0,
-  };
+  return rest;
 }
 
 function slaTone(nota: Nota) {
@@ -37,33 +30,20 @@ function buildSummary(notas: Nota[]) {
 async function fetchAllNotasForSummary(filters?: NotasFilters) {
   const clean = cleanCountFilters(filters);
   const apiFilters = cleanClientOnlyFiltersForApi(clean);
-  const notas: Nota[] = [];
-  const seenNotaIds = new Set<number>();
-  let offset = 0;
-  let totalFromApi: number | undefined;
-
-  for (let page = 0; page < COUNT_MAX_PAGES; page += 1) {
-    const response = await api.listarNotasConferencia({ ...apiFilters, limit: COUNT_PAGE_SIZE, offset });
-    const rawNewItems = response.items.filter((nota) => !seenNotaIds.has(nota.id));
-    rawNewItems.forEach((nota) => seenNotaIds.add(nota.id));
-    const matchedItems = filterNotasByPortalFilters(rawNewItems, clean);
-    notas.push(...matchedItems);
-
-    if (typeof response.total === 'number') {
-      totalFromApi = response.total;
-      if (offset + response.items.length >= response.total) break;
-    }
-
-    if (response.items.length < COUNT_PAGE_SIZE) break;
-    if (rawNewItems.length === 0) break;
-    offset += COUNT_PAGE_SIZE;
-  }
+  // `/notas/todas` busca tudo no backend (em lotes internos) e devolve o
+  // conjunto completo, ao contrario de `/notas` que e limitado a 500
+  // registros por pagina e nunca informa o total (por isso o dashboard
+  // ficava travado mostrando "500+"). Como `response.items` ja vem
+  // completo, `summary.total` (apos os filtros client-only, ex.: busca
+  // livre, nome do prestador) e o numero correto a exibir — o `total`
+  // bruto da API não considera esses filtros que só existem no cliente.
+  const response = await api.listarTodasNotas(apiFilters);
+  const notas = filterNotasByPortalFilters(response.items, clean);
 
   const summary = buildSummary(notas);
   return {
     ...summary,
-    total: totalFromApi === undefined ? summary.total : summary.total,
-    complete: totalFromApi !== undefined || notas.length < COUNT_PAGE_SIZE * COUNT_MAX_PAGES,
+    complete: true,
   };
 }
 

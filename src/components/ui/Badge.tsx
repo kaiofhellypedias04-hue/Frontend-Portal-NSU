@@ -1,4 +1,5 @@
-import { classNames, statusLabel } from '../../lib/format';
+import { twMerge } from 'tailwind-merge';
+import { statusLabel } from '../../lib/format';
 
 type Tone = 'success' | 'warning' | 'danger' | 'info' | 'muted';
 
@@ -22,7 +23,11 @@ export function statusTone(status?: string | null): Tone {
 export function Badge({ value, tone, className }: { value?: string | null; tone?: Tone; className?: string }) {
   const finalTone = tone || statusTone(value);
   return (
-    <span className={classNames('inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold', toneClasses[finalTone], className)}>
+    // twMerge (nao classNames/join simples) para que um className vindo de
+    // fora (ex.: text-[11px], px-2) realmente substitua o tamanho/padding
+    // padrao (text-xs, px-2.5) em vez de deixar as duas classes conflitantes
+    // no DOM e o resultado visual dependendo da ordem imprevisivel do CSS.
+    <span className={twMerge('inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold', toneClasses[finalTone], className)}>
       {statusLabel(value)}
     </span>
   );

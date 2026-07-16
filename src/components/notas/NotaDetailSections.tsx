@@ -196,7 +196,7 @@ function normalizeTributo(item: NotaTributoComparativo) {
 export function NotaDetailSections({ nota }: { nota: Nota }) {
   const [status, setStatus] = useState(nota.conferencia_status || 'pendente');
   const [observacao, setObservacao] = useState(nota.observacao || nota.conferencia_observacao || '');
-  const [observacaoInterna, setObservacaoInterna] = useState(nota.observacao_interna || nota.conferencia_observacao || '');
+  const [observacaoInterna, setObservacaoInterna] = useState(nota.observacao_interna || '');
   const [prioridade, setPrioridade] = useState(nota.prioridade_fila || nota.prioridade || prioridadeManualValue(nota.prioridade_manual) || '');
   const [prioridadeManual, setPrioridadeManual] = useState(Boolean(nota.prioridade_manual));
   const [responsavel, setResponsavel] = useState(nota.responsavel || '');
@@ -228,7 +228,7 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
   useEffect(() => {
     setStatus(nota.conferencia_status || 'pendente');
     setObservacao(nota.observacao || nota.conferencia_observacao || '');
-    setObservacaoInterna(nota.observacao_interna || nota.conferencia_observacao || '');
+    setObservacaoInterna(nota.observacao_interna || '');
     setPrioridade(nota.prioridade_fila || nota.prioridade || prioridadeManualValue(nota.prioridade_manual) || '');
     setPrioridadeManual(Boolean(nota.prioridade_manual));
     setResponsavel(nota.responsavel || operator?.operator_name || '');
@@ -242,13 +242,11 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
       payload: {
         conferencia_status: status,
         observacao: observacao.trim() || null,
-        observacao_interna: observacaoInterna.trim() || null,
         conferencia_observacao: observacao.trim() || null,
         prioridade: prioridade || null,
         prioridade_manual: prioridadeManual ? prioridade || null : null,
         responsavel: responsavel.trim() || operator?.operator_name || null,
         valor_liquido_correto: valorLiquidoCorreto.trim() || null,
-        alertas_fiscais: alertasFiscais.trim() || null,
         operator_name: operator?.operator_name,
         operator_id: operator?.operator_id,
         device_id: operator?.device_id,
@@ -352,11 +350,11 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
           </label>
           <label>
             <span className="label">Observacao interna</span>
-            <textarea className="field min-h-28 resize-y" value={observacaoInterna} onChange={(event) => setObservacaoInterna(event.target.value)} />
+            <textarea className="field min-h-28 resize-y opacity-70" value={observacaoInterna} readOnly aria-readonly="true" title="Campo preenchido apenas pelo sistema" />
           </label>
           <label>
             <span className="label">Alertas fiscais</span>
-            <textarea className="field min-h-24 resize-y" value={alertasFiscais} onChange={(event) => setAlertasFiscais(event.target.value)} placeholder="Um alerta por linha, se aplicavel" />
+            <textarea className="field min-h-24 resize-y opacity-70" value={alertasFiscais} readOnly aria-readonly="true" title="Campo preenchido apenas pelo sistema" placeholder="Preenchido automaticamente pelo sistema" />
           </label>
           {salvar.isError ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">Nao foi possivel salvar: {salvar.error.message}</div> : null}
           {salvar.isSuccess ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">Analise salva.</div> : null}

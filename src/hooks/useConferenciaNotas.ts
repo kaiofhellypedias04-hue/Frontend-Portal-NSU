@@ -78,8 +78,9 @@ export function useSalvarConferenciaNota() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ notaId, payload }: { notaId: number; payload: ConferenciaPayload }) => api.salvarConferenciaNota(notaId, payload),
-    onSuccess: async (_nota, variables) => {
-      invalidatePortalData(queryClient);
+    onSuccess: async (nota, variables) => {
+      queryClient.setQueryData(['nota-detalhe', variables.notaId], nota);
+      await invalidatePortalData(queryClient);
       await queryClient.invalidateQueries({ queryKey: ['nota-detalhe', variables.notaId] });
     },
   });

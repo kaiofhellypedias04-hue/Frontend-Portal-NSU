@@ -39,12 +39,26 @@ function slaLabel(nota: Nota) {
 }
 
 function operationalBadgeTone(value?: string | null, dangerWhen?: boolean | null) {
+  // Quando o chamador informa explicitamente se e "perigo" ou nao (ex.: a
+  // coluna Divergencia manda divergencia_fila_final), isso e a fonte da
+  // verdade e decide sozinho — sem essa checagem antes do texto, "Sem
+  // divergência" caia no `text.includes('diverg')` (que tambem e verdade
+  // para "divergência" dentro de "Sem divergência") e ficava vermelho.
+  if (dangerWhen === true) return 'danger' as const;
+  if (dangerWhen === false) return 'success' as const;
   const text = String(value || '').toLowerCase();
-  if (dangerWhen || text.includes('diverg') || text.includes('alta') || text.includes('danger')) return 'danger' as const;
+  if (text.includes('sem diverg') || text.includes('nao diverg') || text.includes('não diverg')) return 'success' as const;
+  if (text.includes('diverg') || text.includes('alta') || text.includes('danger')) return 'danger' as const;
   if (text.includes('warn') || text.includes('media') || text.includes('pendente')) return 'warning' as const;
-  if (text.includes('ok') || text.includes('corret') || text.includes('baixa') || text.includes('sem diverg')) return 'success' as const;
+  if (text.includes('ok') || text.includes('corret') || text.includes('baixa')) return 'success' as const;
   return 'muted' as const;
 }
+
+// Tamanho unico usado em toda a tabela (mesmo dos badges) para as celulas
+// nao terem uma mistura de text-sm (herdado da tabela) com text-[11px]
+// (badges), o que fazia o texto parecer com tamanhos/formatos diferentes
+// entre colunas na mesma linha.
+const CELL_TEXT_SIZE = 'text-[11px]';
 
 const NOTAS_COLUMNS: NotaColumn[] = [
   {
@@ -52,6 +66,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     label: 'Nota',
     width: 126,
     minWidth: 42,
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => (
       <div className="truncate font-bold text-white" title={nota.numero_nfse || '-'}>{nota.numero_nfse || '-'}</div>
     ),
@@ -61,12 +76,13 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     label: 'Empresa',
     width: 230,
     minWidth: 34,
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => {
       const empresa = nota.tomador_nome || nota.empresa_nome || '-';
       return (
         <>
           <div className="truncate font-medium text-slate-100" title={empresa}>{empresa}</div>
-          <div className="truncate text-[11px] text-textSoft">{nota.tomador_cnpj || '-'}</div>
+          <div className="truncate text-textSoft">{nota.tomador_cnpj || '-'}</div>
         </>
       );
     },
@@ -76,12 +92,13 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     label: 'Prestador',
     width: 230,
     minWidth: 34,
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => {
       const prestador = nota.prestador_nome || '-';
       return (
         <>
           <div className="truncate font-medium text-slate-100" title={prestador}>{prestador}</div>
-          <div className="truncate text-[11px] text-textSoft">{nota.prestador_cnpj || '-'}</div>
+          <div className="truncate text-textSoft">{nota.prestador_cnpj || '-'}</div>
         </>
       );
     },
@@ -92,16 +109,18 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     width: 112,
     minWidth: 42,
     align: 'center',
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => <span title={formatServiceCode(nota.codigo_servico)}>{formatServiceCode(nota.codigo_servico)}</span>,
   },
-  { key: 'competencia', label: 'Comp.', width: 94, minWidth: 42, align: 'center', render: (nota) => formatDate(nota.competencia) },
-  { key: 'emissao', label: 'Emiss.', width: 94, minWidth: 42, align: 'center', render: (nota) => formatDate(nota.data_emissao) },
-  { key: 'valor', label: 'Valor', width: 110, minWidth: 48, align: 'right', render: (nota) => <span className="font-semibold text-slate-100">{formatCurrency(nota.valor_servico)}</span> },
+  { key: 'competencia', label: 'Comp.', width: 94, minWidth: 42, align: 'center', cellClassName: CELL_TEXT_SIZE, render: (nota) => formatDate(nota.competencia) },
+  { key: 'emissao', label: 'Emiss.', width: 94, minWidth: 42, align: 'center', cellClassName: CELL_TEXT_SIZE, render: (nota) => formatDate(nota.data_emissao) },
+  { key: 'valor', label: 'Valor', width: 110, minWidth: 48, align: 'right', cellClassName: CELL_TEXT_SIZE, render: (nota) => <span className="font-semibold text-slate-100">{formatCurrency(nota.valor_servico)}</span> },
   {
     key: 'status',
     label: 'Status',
     width: 104,
     minWidth: 42,
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => <Badge value={nota.status_rotulo || nota.status_documento || 'Sem status'} className="max-w-full truncate px-2 text-[11px]" />,
   },
   {
@@ -109,6 +128,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     label: 'Divergência',
     width: 130,
     minWidth: 44,
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => <Badge value={nota.divergencia_fila_label || nota.divergencia || 'Sem divergência'} tone={operationalBadgeTone(nota.divergencia_fila_label, nota.divergencia_fila_final)} className="max-w-full truncate px-2 text-[11px]" />,
   },
   {
@@ -116,6 +136,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     label: 'Prioridade',
     width: 105,
     minWidth: 42,
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => <Badge value={nota.prioridade_fila || nota.prioridade || 'baixa'} tone={operationalBadgeTone(nota.prioridade_fila || nota.prioridade)} className="max-w-full truncate px-2 text-[11px]" />,
   },
   {
@@ -123,6 +144,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     label: 'Responsável',
     width: 130,
     minWidth: 44,
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => <span title={nota.responsavel || 'Não atribuído'}>{nota.responsavel || 'Não atribuído'}</span>,
   },
   {
@@ -131,6 +153,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     width: 78,
     minWidth: 36,
     align: 'center',
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => <Badge value={slaLabel(nota)} tone={operationalBadgeTone(typeof nota.sla === 'object' ? nota.sla?.tone : nota.sla_status)} className="max-w-full truncate px-2 text-[11px]" />,
   },
   {
@@ -139,6 +162,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     width: 72,
     minWidth: 36,
     align: 'center',
+    cellClassName: CELL_TEXT_SIZE,
     render: (nota) => {
       const atualizadoEm = nota.importado_em || nota.updated_at || nota.created_at;
       return <span title={timeAgo(atualizadoEm)}>{compactTimeAgo(atualizadoEm)}</span>;

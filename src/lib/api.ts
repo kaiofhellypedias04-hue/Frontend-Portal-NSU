@@ -675,6 +675,13 @@ export const api = {
     request<Nota[] | { items?: Nota[] }>('/notas', { params: buildNotasListParams(filters) }).then((response) => extractItems(response).map(normalizeNota)),
   listarNotasConferencia: (filters?: NotasFilters) =>
     request<Nota[] | ConferenciaNotasResponse>('/notas', { params: buildNotasListParams(filters) }).then(normalizeNotasResponse),
+  // `/notas` e paginado (limit<=500) e nunca devolve `total`. `/notas/todas`
+  // busca tudo no backend (em lotes internos) e devolve {items, total} real,
+  // usado quando precisamos do total exato (ex.: contadores do dashboard).
+  listarTodasNotas: (filters?: NotasFilters) => {
+    const { limit: _limit, offset: _offset, ...params } = buildNotasListParams(filters);
+    return request<ConferenciaNotasResponse>('/notas/todas', { params }).then(normalizeNotasResponse);
+  },
   salvarConferenciaNota: (notaId: number, payload: ConferenciaPayload) =>
     request<Nota>(`/notas/${notaId}/conferencia`, { method: 'PATCH', body: JSON.stringify(payload) }).then(normalizeNota),
   updateNotaConferencia: (notaId: string | number, payload: NotaConferenciaPayload) =>
