@@ -9,9 +9,13 @@ import { useNotasInfinite } from '../hooks/useNotas';
 import { useNotasTotals } from '../hooks/useNotasTotals';
 import { dedupeNotas } from '../lib/notaFilters';
 import type { Nota, NotasFilters } from '../types/api';
+import { PageHeader } from '../components/ui/PageHeader';
+import { usePersistentState, useRestoreScroll } from '../hooks/usePersistentState';
+import { QuickTasks } from '../components/dashboard/QuickTasks';
 
 export function Dashboard() {
-  const [filters, setFilters] = useState<NotasFilters>({ limit: 500, offset: 0 });
+  const [filters, setFilters] = usePersistentState<NotasFilters>('filters:dashboard', { limit: 500, offset: 0 });
+  useRestoreScroll('dashboard');
   const [selectedNota, setSelectedNota] = useState<Nota | null>(null);
   const [isLoadingAllNotas, setIsLoadingAllNotas] = useState(false);
   const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotasInfinite(filters, 10_000);
@@ -44,9 +48,11 @@ export function Dashboard() {
 
   return (
     <div className="min-w-0">
+      <PageHeader eyebrow="Visão geral" title="Painel principal" description="Acompanhe a operação fiscal, o motor de consultas e as notas mais recentes em um só lugar." />
+      <QuickTasks />
       <LiveStatusBar />
       <CycleSummary />
-      <NotasDownloadActions filters={filters} notasPaginaAtual={notas} />
+      <NotasDownloadActions filters={filters} />
       <NotasFilterPanel value={filters} onChange={setFilters} />
       <NotasTable
         notas={notas}

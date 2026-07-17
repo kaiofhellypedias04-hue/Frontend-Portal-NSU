@@ -79,13 +79,13 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
 
 function friendlyHttpMessage(status: number, detail?: unknown) {
   const text = typeof detail === 'string' ? detail.toLowerCase() : JSON.stringify(detail || {}).toLowerCase();
-  if (text.includes('senha')) return 'Nao foi possivel validar a senha do certificado. Confira a senha e tente novamente.';
-  if (text.includes('cnpj')) return 'Nao foi possivel identificar um CNPJ no certificado. Envie um certificado valido da empresa.';
-  if (text.includes('certificado') || text.includes('pfx') || text.includes('p12')) return 'O certificado enviado nao parece valido. Confira o arquivo .pfx ou .p12 e tente novamente.';
-  if (text.includes('cors')) return 'O navegador bloqueou a chamada ao backend por CORS. Verifique a configuracao de origens permitidas na API.';
+  if (text.includes('senha')) return 'Não foi possível validar a senha do certificado. Confira a senha e tente novamente.';
+  if (text.includes('cnpj')) return 'Não foi possível identificar um CNPJ no certificado. Envie um certificado válido da empresa.';
+  if (text.includes('certificado') || text.includes('pfx') || text.includes('p12')) return 'O certificado enviado não parece válido. Confira o arquivo .pfx ou .p12 e tente novamente.';
+  if (text.includes('cors')) return 'O navegador bloqueou a chamada ao backend por CORS. Verifique a configuração de origens permitidas na API.';
   if (text.includes('upload')) return 'Falha no upload do certificado. Tente novamente.';
-  if (status === 404) return 'Endpoint nao encontrado no backend. Confira se a API local esta atualizada.';
-  if (status === 422) return 'Os dados enviados nao foram aceitos pelo backend. Revise os campos e tente novamente.';
+  if (status === 404) return 'Endpoint não encontrado no backend. Confira se a API local está atualizada.';
+  if (status === 422) return 'Os dados enviados não foram aceitos pelo backend. Revise os campos e tente novamente.';
   if (status >= 500) return 'O backend encontrou um erro interno. Tente novamente e confira os logs da API.';
   if (typeof detail === 'string' && detail.trim()) return detail;
   return `A API respondeu com erro ${status}.`;
@@ -113,7 +113,7 @@ async function request<T>(path: string, options?: RequestInit & { params?: Recor
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiError('Tempo limite ao conectar no backend. Verifique se a API esta respondendo.', 'timeout', undefined, error);
     }
-    throw new ApiError('Falha ao conectar na API. Verifique VITE_API_BASE_URL e possivel bloqueio de CORS ou API indisponivel.', 'offline', 0, error);
+    throw new ApiError('Falha ao conectar na API. Verifique VITE_API_BASE_URL e possível bloqueio de CORS ou API indisponível.', 'offline', 0, error);
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -174,7 +174,7 @@ async function requestBlob(
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiError('Tempo limite ao gerar o ZIP. Tente reduzir os filtros ou confira os logs da API.', 'timeout', undefined, error);
     }
-    throw new ApiError('Falha ao conectar na API para baixar o ZIP. Verifique VITE_API_BASE_URL e possivel bloqueio de CORS ou API indisponivel.', 'offline', 0, error);
+    throw new ApiError('Falha ao conectar na API para baixar o ZIP. Verifique VITE_API_BASE_URL e possível bloqueio de CORS ou API indisponível.', 'offline', 0, error);
   } finally {
     window.clearTimeout(timeoutId);
   }
@@ -220,7 +220,7 @@ async function requestArquivoBlob(path: string, fallbackFilename = 'arquivo'): P
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw new ApiError('Tempo limite ao abrir o arquivo. Tente novamente.', 'timeout', undefined, error);
     }
-    throw new ApiError('Falha ao conectar na API para abrir o arquivo. Verifique VITE_API_BASE_URL e possivel bloqueio de CORS ou API indisponivel.', 'offline', 0, error);
+    throw new ApiError('Falha ao conectar na API para abrir o arquivo. Verifique VITE_API_BASE_URL e possível bloqueio de CORS ou API indisponível.', 'offline', 0, error);
   } finally {
     window.clearTimeout(timeoutId);
   }

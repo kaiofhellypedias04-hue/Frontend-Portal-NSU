@@ -30,7 +30,7 @@ export function NotaDrawer({ nota, onClose }: { nota: Nota | null; onClose: () =
           ) : null}
           {error ? (
             <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200">
-              Nao foi possivel atualizar os detalhes agora. Mostrando dados da lista.
+              Não foi possível atualizar os detalhes agora. Mostrando dados da lista.
             </div>
           ) : null}
           <NotaDetailSections nota={currentNota} />

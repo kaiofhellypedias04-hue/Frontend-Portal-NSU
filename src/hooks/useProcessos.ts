@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from '../components/ui/Toaster';
 import { invalidatePortalData } from './queryInvalidation';
 import type { ConsultaDesativarPayload, ConsultaIniciarPayload } from '../types/api';
 
@@ -16,7 +17,10 @@ export function useCancelarProcesso() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (processoId: number) => api.cancelarProcesso(processoId),
-    onSuccess: () => invalidatePortalData(queryClient),
+    onSuccess: () => {
+      toast.success('Processo cancelado');
+      return invalidatePortalData(queryClient);
+    },
   });
 }
 
@@ -25,7 +29,10 @@ export function useIniciarConsultas() {
 
   return useMutation({
     mutationFn: (payload?: ConsultaIniciarPayload) => api.iniciarConsultas(payload),
-    onSuccess: () => invalidatePortalData(queryClient),
+    onSuccess: () => {
+      toast.success('Consultas iniciadas', 'O motor vai processar as empresas selecionadas.');
+      return invalidatePortalData(queryClient);
+    },
   });
 }
 
@@ -34,6 +41,9 @@ export function useDesativarConsultas() {
 
   return useMutation({
     mutationFn: (payload?: ConsultaDesativarPayload) => api.desativarConsultas(payload),
-    onSuccess: () => invalidatePortalData(queryClient),
+    onSuccess: () => {
+      toast.success('Consultas desativadas');
+      return invalidatePortalData(queryClient);
+    },
   });
 }

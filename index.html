@@ -4,6 +4,17 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portal NFS-e</title>
+    <script>
+      (() => {
+        const saved = localStorage.getItem('nfse-theme');
+        const theme = saved === 'light' || saved === 'dark'
+          ? saved
+          : (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+        if (localStorage.getItem('nfse-font-size') === 'large') document.documentElement.dataset.fontSize = 'large';
+        if (localStorage.getItem('nfse-table-density') === 'compact') document.documentElement.dataset.tableDensity = 'compact';
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

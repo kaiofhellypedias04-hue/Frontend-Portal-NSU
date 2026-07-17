@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from '../components/ui/Toaster';
 import type { NotasDownloadLoteOptions, NotasFilters, RelatorioConferenciaFilters } from '../types/api';
 
 function saveBlob(blob: Blob, filename: string) {
@@ -17,6 +18,7 @@ export function useNotasDownloadLote(filters?: NotasFilters) {
   return useMutation({
     mutationFn: (options: NotasDownloadLoteOptions) => api.downloadNotasLote(filters, options),
     onSuccess: (downloads) => {
+      toast.success(downloads.length === 1 ? 'Download iniciado' : `${downloads.length} downloads iniciados`);
       downloads.forEach(({ blob, filename }, index) => {
         window.setTimeout(() => saveBlob(blob, filename), index * 400);
       });
@@ -27,6 +29,9 @@ export function useNotasDownloadLote(filters?: NotasFilters) {
 export function useRelatorioConferenciaDownload(filters?: RelatorioConferenciaFilters | NotasFilters) {
   return useMutation({
     mutationFn: () => api.exportRelatorioConferencia(filters),
-    onSuccess: ({ blob, filename }) => saveBlob(blob, filename || 'relatorio_conferencia.xlsx'),
+    onSuccess: ({ blob, filename }) => {
+      toast.success('Relatório gerado');
+      saveBlob(blob, filename || 'relatorio_conferencia.xlsx');
+    },
   });
 }

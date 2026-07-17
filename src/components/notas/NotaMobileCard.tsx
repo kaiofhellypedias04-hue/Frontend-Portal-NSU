@@ -7,7 +7,7 @@ export function NotaMobileCard({ nota, onOpen }: { nota: Nota; onOpen: (nota: No
     <article
       role="button"
       tabIndex={0}
-      className="cursor-pointer rounded-2xl border border-borderSoft bg-panel p-4 transition hover:bg-slate-800/30 focus:bg-slate-800/40 focus:outline-none"
+      className="cursor-pointer rounded-2xl border border-borderSoft bg-panel p-4 transition hover:bg-slate-800/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/60"
       onClick={() => onOpen(nota)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {
@@ -25,15 +25,15 @@ export function NotaMobileCard({ nota, onOpen }: { nota: Nota; onOpen: (nota: No
       </div>
 
       <p className="mt-3 line-clamp-2 text-sm font-semibold text-white">{nota.tomador_nome || nota.empresa_nome || '-'}</p>
-      <p className="mt-1 line-clamp-1 text-xs text-textSoft">{nota.prestador_nome || 'Prestador nao informado'}</p>
+      <p className="mt-1 line-clamp-1 text-xs text-textSoft">{nota.prestador_nome || 'Prestador não informado'}</p>
 
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         <div>
-          <p className="text-xs text-textSoft">Competencia</p>
+          <p className="text-xs text-textSoft">Competência</p>
           <p className="font-semibold text-white">{formatDate(nota.competencia)}</p>
         </div>
         <div>
-          <p className="text-xs text-textSoft">Emissao</p>
+          <p className="text-xs text-textSoft">Emissão</p>
           <p className="font-semibold text-white">{formatDate(nota.data_emissao)}</p>
         </div>
         <div>
@@ -41,7 +41,7 @@ export function NotaMobileCard({ nota, onOpen }: { nota: Nota; onOpen: (nota: No
           <p className="font-semibold text-white">{formatCurrency(nota.valor_servico)}</p>
         </div>
         <div>
-          <p className="text-xs text-textSoft">Cod. servico</p>
+          <p className="text-xs text-textSoft">Cód. serviço</p>
           <p className="font-semibold text-white">{formatServiceCode(nota.codigo_servico)}</p>
         </div>
       </div>

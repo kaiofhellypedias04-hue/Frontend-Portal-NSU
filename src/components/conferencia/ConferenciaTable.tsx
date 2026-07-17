@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
 import { InfiniteScrollSentinel } from '../ui/InfiniteScrollSentinel';
+import { TableSkeleton } from '../ui/Skeleton';
 import { ResizableDataTable, type ResizableDataColumn } from '../ui/ResizableDataTable';
 import { formatCnpj, formatCurrency, formatDate, formatDateTime, formatServiceCode } from '../../lib/format';
 import type { Nota } from '../../types/api';
 import { badgeTone, conferenciaLabel, displayValue, notaNumero, notaValor, tipoNotaLabel } from './conferenciaUtils';
+import { ConferenciaMobileCard } from './ConferenciaMobileCard';
 
 type ColumnAlign = 'left' | 'center' | 'right';
 
@@ -26,7 +28,7 @@ function getSlaTone(nota: Nota) {
 }
 
 function CompactBadge({ value }: { value?: string | null }) {
-  return <Badge value={displayValue(value)} tone={badgeTone(value)} className="max-w-full truncate px-2 py-0.5 text-[11px]" />;
+  return <Badge value={displayValue(value)} tone={badgeTone(value)} className="max-w-full truncate px-2 py-0.5 text-xs" />;
 }
 
 function CellText({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -57,8 +59,8 @@ function createConferenciaColumns(): ConferenciaColumn[] {
     ),
   },
   { key: 'tipo_nota', label: 'Tipo', width: 105, render: (nota) => <CompactBadge value={tipoNotaLabel(nota.tipo_nota)} /> },
-  { key: 'competencia', label: 'Competencia', width: 125, minWidth: 44, align: 'center', render: (nota) => formatDate(nota.competencia) },
-  { key: 'data_emissao', label: 'Data de emissao', width: 135, minWidth: 44, align: 'center', render: (nota) => formatDate(nota.data_emissao) },
+  { key: 'competencia', label: 'Competência', width: 125, minWidth: 44, align: 'center', render: (nota) => formatDate(nota.competencia) },
+  { key: 'data_emissao', label: 'Data de emissão', width: 135, minWidth: 44, align: 'center', render: (nota) => formatDate(nota.data_emissao) },
   {
     key: 'tomador',
     label: 'Tomador',
@@ -66,7 +68,7 @@ function createConferenciaColumns(): ConferenciaColumn[] {
     minWidth: 36,
     render: (nota) => (
       <>
-        <CellText className="font-medium text-slate-100">{displayValue(nota.tomador_nome || 'Nao informado no XML')}</CellText>
+        <CellText className="font-medium text-slate-100">{displayValue(nota.tomador_nome || 'Não informado no XML')}</CellText>
         <div className="truncate text-xs text-textSoft">{formatCnpj(nota.tomador_cnpj)}</div>
       </>
     ),
@@ -83,19 +85,19 @@ function createConferenciaColumns(): ConferenciaColumn[] {
       </>
     ),
   },
-  { key: 'codigo_servico', label: 'Cod. servico', width: 115, minWidth: 44, align: 'center', render: (nota) => formatServiceCode(nota.codigo_servico) },
+  { key: 'codigo_servico', label: 'Cód. serviço', width: 115, minWidth: 44, align: 'center', render: (nota) => formatServiceCode(nota.codigo_servico) },
   { key: 'valor', label: 'Valor', width: 120, minWidth: 50, align: 'right', render: (nota) => <span className="font-semibold text-slate-100">{formatCurrency(notaValor(nota))}</span> },
   { key: 'status_nota', label: 'Status nota', width: 135, minWidth: 44, render: (nota) => <CompactBadge value={nota.status_nota || nota.status_rotulo || nota.status_documento} /> },
   { key: 'simples_xml', label: 'Simples Nacional / XML', width: 230, minWidth: 44, render: (nota) => <CompactBadge value={nota.simples_nacional || nota.simples_xml || nota.simples_nacional_xml} /> },
   { key: 'status_simples', label: 'Status Simples Nacional', width: 240, minWidth: 44, render: (nota) => <CompactBadge value={nota.status_simples_nacional} /> },
-  { key: 'incidencia_iss', label: 'Incidencia do ISS', width: 155, minWidth: 44, render: (nota) => <CompactBadge value={nota.incidencia_iss} /> },
+  { key: 'incidencia_iss', label: 'Incidência do ISS', width: 155, minWidth: 44, render: (nota) => <CompactBadge value={nota.incidencia_iss} /> },
   { key: 'status', label: 'Status', width: 120, minWidth: 44, render: (nota) => <CompactBadge value={nota.status_fila_final || nota.status_fila || nota.status || nota.status_documento} /> },
-  { key: 'divergencia', label: 'Divergencia', width: 135, minWidth: 44, render: (nota) => <Badge value={nota.divergencia_fila_label || nota.divergencia || 'Sem divergência'} tone={nota.divergencia_fila_final ? 'danger' : 'success'} className="max-w-full truncate px-2 py-0.5 text-[11px]" /> },
+  { key: 'divergencia', label: 'Divergência', width: 135, minWidth: 44, render: (nota) => <Badge value={nota.divergencia_fila_label || nota.divergencia || 'Sem divergência'} tone={nota.divergencia_fila_final ? 'danger' : 'success'} className="max-w-full truncate px-2 py-0.5 text-xs" /> },
   { key: 'prioridade', label: 'Prioridade', width: 125, minWidth: 44, render: (nota) => <CompactBadge value={nota.prioridade_fila || nota.prioridade || (typeof nota.prioridade_manual === 'string' ? nota.prioridade_manual : null)} /> },
-  { key: 'responsavel', label: 'Responsavel', width: 145, minWidth: 44, render: (nota) => displayValue(nota.responsavel) },
-  { key: 'conferencia', label: 'Conferencia', width: 135, minWidth: 44, render: (nota) => <CompactBadge value={conferenciaLabel(nota.conferencia_status)} /> },
+  { key: 'responsavel', label: 'Responsável', width: 145, minWidth: 44, render: (nota) => displayValue(nota.responsavel) },
+  { key: 'conferencia', label: 'Conferência', width: 135, minWidth: 44, render: (nota) => <CompactBadge value={conferenciaLabel(nota.conferencia_status)} /> },
   { key: 'entrada', label: 'Entrada', width: 155, minWidth: 50, align: 'center', render: (nota) => formatDateTime(nota.entrada_fila || nota.entrada || nota.importado_em || nota.created_at) },
-  { key: 'sla', label: 'SLA', width: 110, minWidth: 40, render: (nota) => <Badge value={getSlaLabel(nota)} tone={badgeTone(getSlaTone(nota))} className="max-w-full truncate px-2 py-0.5 text-[11px]" /> },
+  { key: 'sla', label: 'SLA', width: 110, minWidth: 40, render: (nota) => <Badge value={getSlaLabel(nota)} tone={badgeTone(getSlaTone(nota))} className="max-w-full truncate px-2 py-0.5 text-xs" /> },
   ];
 }
 
@@ -135,10 +137,10 @@ export function ConferenciaTable({
           return <CheckCircle2 aria-label="Nota conferida" className="mx-auto text-emerald-300" size={18} />;
         }
         if (isConferenciaPendente(nota)) {
-          return <AlertTriangle aria-label="Nota pendente de conferencia" className="mx-auto text-amber-300" size={18} />;
+          return <AlertTriangle aria-label="Nota pendente de conferência" className="mx-auto text-amber-300" size={18} />;
         }
         if (isConferenciaObservacao(nota)) {
-          return <Eye aria-label="Nota em observacao" className="mx-auto text-sky-300" size={18} />;
+          return <Eye aria-label="Nota em observação" className="mx-auto text-sky-300" size={18} />;
         }
         return null;
       },
@@ -149,6 +151,9 @@ export function ConferenciaTable({
   useEffect(() => {
     if (!maximized) return undefined;
 
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMaximized(false);
@@ -156,19 +161,18 @@ export function ConferenciaTable({
     };
 
     window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', onKeyDown);
+    };
   }, [maximized]);
 
   if (isLoading && notas.length === 0) {
-    return (
-      <div className="glass-card flex items-center justify-center gap-2 p-10 text-textSoft">
-        <Loader2 className="animate-spin" size={18} /> Buscando notas para conferencia...
-      </div>
-    );
+    return <TableSkeleton title="Buscando notas para conferência..." />;
   }
 
   if (error && notas.length === 0) {
-    return <EmptyState title="Nao foi possivel carregar a conferencia" description={error.message} />;
+    return <EmptyState title="Não foi possível carregar a conferência" description={error.message} />;
   }
 
   if (notas.length === 0) {
@@ -204,7 +208,7 @@ export function ConferenciaTable({
           <div className="flex shrink-0 items-center gap-3">
             <button
               type="button"
-              className="inline-flex items-center gap-2 rounded-xl border border-borderSoft bg-panel2 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-sky-400/60 hover:bg-slate-800"
+              className="hidden items-center gap-2 rounded-xl border border-borderSoft bg-panel2 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-sky-400/60 hover:bg-slate-800 md:inline-flex"
               onClick={() => setMaximized(true)}
             >
               <Maximize2 size={14} /> Maximizar tabela
@@ -214,14 +218,18 @@ export function ConferenciaTable({
         </div>
         {error ? (
           <div className="border-b border-amber-400/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-200">
-            Nao consegui atualizar agora. A tabela pode estar mostrando o ultimo resultado em cache: {error.message}
+            Não consegui atualizar agora. A tabela pode estar mostrando o último resultado em cache: {error.message}
           </div>
         ) : null}
 
-        <div className="w-full min-w-0 p-4 pt-3">
+        <div className="grid gap-3 p-4 md:hidden">
+          {notas.map((nota) => <ConferenciaMobileCard key={nota.id} nota={nota} onOpen={onOpen} />)}
+        </div>
+
+        <div className="hidden w-full min-w-0 p-4 pt-3 md:block">
           {renderTable()}
         </div>
-        <InfiniteScrollSentinel hasMore={hasMore} isLoading={isLoadingMore} onLoadMore={onLoadMore} label="Carregando mais notas para conferencia..." />
+        <InfiniteScrollSentinel hasMore={hasMore} isLoading={isLoadingMore} onLoadMore={onLoadMore} label="Carregando mais notas para conferência..." />
       </section>
 
       {maximized ? (
@@ -230,7 +238,7 @@ export function ConferenciaTable({
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-borderSoft p-4">
               <div className="min-w-0">
                 <h2 className="font-semibold text-white">Tabela operacional</h2>
-                <p className="text-xs text-textSoft">Visualizacao maximizada sem zoom, com scroll horizontal dentro da tabela.</p>
+                <p className="text-xs text-textSoft">Visualização maximizada sem zoom, com scroll horizontal dentro da tabela.</p>
               </div>
               <button
                 type="button"

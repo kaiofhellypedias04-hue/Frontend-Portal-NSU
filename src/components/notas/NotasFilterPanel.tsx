@@ -1,21 +1,53 @@
 import { ChevronDown, Filter, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../ui/Button';
+import { FilterChips, type FilterChip } from '../ui/FilterChips';
+import { formatDate } from '../../lib/format';
 import type { NotasFilters } from '../../types/api';
 import { useEmpresas } from '../../hooks/useEmpresas';
+import { SavedViews } from '../ui/SavedViews';
+
+const STATUS_LABELS: Record<string, string> = {
+  normal: 'Normal',
+  cancelada: 'Cancelada',
+  substituida: 'Substituída',
+};
 
 export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onChange: (filters: NotasFilters) => void }) {
   const [open, setOpen] = useState(true);
   const [draft, setDraft] = useState<NotasFilters>(value);
   const { data: empresas = [] } = useEmpresas();
+  useEffect(() => { const toggle = () => setOpen((state) => !state); window.addEventListener('portal:toggle-filters', toggle); return () => window.removeEventListener('portal:toggle-filters', toggle); }, []);
 
-  const activeCount = useMemo(() => Object.values(value).filter(Boolean).length, [value]);
+  const chips = useMemo<FilterChip[]>(() => {
+    const result: FilterChip[] = [];
+    if (value.empresa_id) {
+      const empresa = empresas.find((item) => String(item.id) === String(value.empresa_id));
+      result.push({ key: 'empresa_id', label: `Empresa: ${empresa?.nome || value.empresa_id}` });
+    }
+    if (value.status_documento) result.push({ key: 'status_documento', label: `Status: ${STATUS_LABELS[value.status_documento] || value.status_documento}` });
+    if (value.chave) result.push({ key: 'chave', label: `Chave: ${value.chave}` });
+    if (value.busca) result.push({ key: 'busca', label: `Busca: ${value.busca}` });
+    if (value.prestador_cnpj) result.push({ key: 'prestador_cnpj', label: `CNPJ prestador: ${value.prestador_cnpj}` });
+    if (value.tomador_cnpj) result.push({ key: 'tomador_cnpj', label: `CNPJ tomador: ${value.tomador_cnpj}` });
+    if (value.data_inicio) result.push({ key: 'data_inicio', label: `De: ${formatDate(value.data_inicio)}` });
+    if (value.data_fim) result.push({ key: 'data_fim', label: `Até: ${formatDate(value.data_fim)}` });
+    return result;
+  }, [value, empresas]);
 
   function setField(key: keyof NotasFilters, fieldValue: string) {
     setDraft((current) => ({ ...current, [key]: fieldValue || undefined, offset: 0 }));
   }
 
-  function apply() {
+  function removeFilter(key: string) {
+    const next = { ...value, [key]: undefined, offset: 0 };
+    setDraft(next);
+    onChange(next);
+  }
+
+  function apply(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     onChange({ ...draft, limit: 500, offset: 0 });
   }
 
@@ -29,26 +61,27 @@ export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onC
     <section className="glass-card mb-5 overflow-hidden">
       <div className="flex flex-col gap-3 border-b border-borderSoft p-4 sm:flex-row sm:items-center sm:justify-between">
         <button className="flex items-center gap-2 text-left" onClick={() => setOpen((state) => !state)}>
-          <Filter size={18} className="text-sky-300" />
+          <Filter size={20} className="text-accent" />
           <div>
-            <h2 className="font-semibold text-white">Filtros</h2>
+            <h2 className="font-semibold text-textStrong">Filtros</h2>
             <p className="text-sm text-textSoft">Refine as notas sem travar o monitoramento ao vivo.</p>
           </div>
           <ChevronDown size={18} className={open ? 'rotate-180 transition' : 'transition'} />
         </button>
         <div className="flex flex-wrap gap-2">
-          {activeCount > 2 ? <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-xs text-sky-200">{activeCount - 2} filtros ativos</span> : null}
           <Button variant="ghost" onClick={() => setOpen((state) => !state)}>{open ? 'Ocultar filtros' : 'Mostrar filtros'}</Button>
         </div>
       </div>
-      {activeCount > 2 ? (
+      <FilterChips chips={chips} onRemove={removeFilter} />
+      <div className="border-b border-borderSoft px-4 py-3"><SavedViews storageKey="views:notas" value={value} onApply={(saved) => { setDraft(saved); onChange(saved); }} /></div>
+      {chips.length > 0 ? (
         <div className="border-b border-amber-400/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-200">
-          Filtros ativos podem ocultar notas recem-importadas. Limpe os filtros para ver tudo em ordem de importacao.
+          Filtros ativos podem ocultar notas recém-importadas. Limpe os filtros para ver tudo em ordem de importação.
         </div>
       ) : null}
 
       {open ? (
-        <div className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-4">
+        <form className="grid gap-4 p-4 md:grid-cols-2 xl:grid-cols-4" onSubmit={apply}>
           <label>
             <span className="label">Empresa</span>
             <select className="field" value={draft.empresa_id || ''} onChange={(e) => setField('empresa_id', e.target.value)}>
@@ -99,11 +132,11 @@ export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onC
             <input type="date" className="field" value={draft.data_fim || ''} onChange={(e) => setField('data_fim', e.target.value)} />
           </label>
 
-          <div className="flex items-end gap-2 md:col-span-2 xl:col-span-4">
-            <Button variant="primary" onClick={apply}>Aplicar filtros</Button>
-            <Button variant="ghost" onClick={clear}><X size={16} /> Limpar</Button>
+          <div className="flex flex-col gap-2 sm:flex-row md:col-span-2 xl:col-span-4">
+            <Button className="sm:min-w-40" type="submit" variant="primary">Aplicar filtros</Button>
+            <Button type="button" variant="ghost" onClick={clear}><X size={16} /> Limpar</Button>
           </div>
-        </div>
+        </form>
       ) : null}
     </section>
   );

@@ -1,13 +1,16 @@
+import { lazy } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
-import { Dashboard } from '../pages/Dashboard';
-import { Conferencia } from '../pages/Conferencia';
-import { Certificados } from '../pages/Certificados';
-import { NotasConsultadas } from '../pages/NotasConsultadas';
-import { Fila } from '../pages/Fila';
-import { Processos } from '../pages/Processos';
-import { Configuracoes } from '../pages/Configuracoes';
-import { MotorAdn } from '../pages/MotorAdn';
+import { pageLoaders } from './page-loaders';
+
+const Dashboard = lazy(() => pageLoaders.dashboard().then((m) => ({ default: m.Dashboard })));
+const Conferencia = lazy(() => pageLoaders.conferencia().then((m) => ({ default: m.Conferencia })));
+const Certificados = lazy(() => pageLoaders.certificados().then((m) => ({ default: m.Certificados })));
+const NotasConsultadas = lazy(() => pageLoaders.notas().then((m) => ({ default: m.NotasConsultadas })));
+const Fila = lazy(() => pageLoaders.fila().then((m) => ({ default: m.Fila })));
+const Processos = lazy(() => pageLoaders.processos().then((m) => ({ default: m.Processos })));
+const Configuracoes = lazy(() => pageLoaders.configuracoes().then((m) => ({ default: m.Configuracoes })));
+const MotorAdn = lazy(() => pageLoaders.motorAdn().then((m) => ({ default: m.MotorAdn })));
 
 export const router = createBrowserRouter([
   {

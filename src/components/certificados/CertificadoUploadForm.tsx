@@ -11,9 +11,9 @@ function isValidCertFile(file?: File | null) {
 }
 
 function resultMessage(autoIniciar: boolean, processoId?: number | null, automaticoAtivo?: boolean) {
-  if (!autoIniciar) return 'Certificado cadastrado. A consulta automatica nao foi iniciada.';
+  if (!autoIniciar) return 'Certificado cadastrado. A consulta automática não foi iniciada.';
   if (processoId) return `Consulta colocada na fila no processo #${processoId}.`;
-  if (automaticoAtivo) return 'Motor automatico ativado. O backend vai enfileirar a consulta quando houver certificado elegivel.';
+  if (automaticoAtivo) return 'Motor automático ativado. O backend vai enfileirar a consulta quando houver certificado elegível.';
   return 'Certificado cadastrado. Confira o status do motor para acompanhar a fila.';
 }
 

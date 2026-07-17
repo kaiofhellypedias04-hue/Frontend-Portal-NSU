@@ -4,11 +4,11 @@ import { statusLabel } from '../../lib/format';
 type Tone = 'success' | 'warning' | 'danger' | 'info' | 'muted';
 
 const toneClasses: Record<Tone, string> = {
-  success: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300',
-  warning: 'border-amber-400/30 bg-amber-400/10 text-amber-300',
-  danger: 'border-rose-400/30 bg-rose-400/10 text-rose-300',
-  info: 'border-sky-400/30 bg-sky-400/10 text-sky-300',
-  muted: 'border-slate-500/30 bg-slate-500/10 text-slate-300',
+  success: 'border-success/30 bg-success/10 text-success',
+  warning: 'border-warning/30 bg-warning/10 text-warning',
+  danger: 'border-danger/30 bg-danger/10 text-danger',
+  info: 'border-accent/30 bg-accent/10 text-accent',
+  muted: 'border-borderSoft bg-panel2 text-textSoft',
 };
 
 export function statusTone(status?: string | null): Tone {

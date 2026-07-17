@@ -9,6 +9,8 @@ import { useEmpresas } from '../hooks/useEmpresas';
 import { useLiveStatus } from '../hooks/useLiveStatus';
 import { useDesativarConsultas, useIniciarConsultas } from '../hooks/useProcessos';
 import type { ConsultaIniciarPayload } from '../types/api';
+import { PageHeader } from '../components/ui/PageHeader';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 function toggleId(ids: number[], id: number) {
   return ids.includes(id) ? ids.filter((item) => item !== id) : [...ids, id];
@@ -33,6 +35,7 @@ export function MotorAdn() {
   const [limite, setLimite] = useState('100');
   const [nsuInicio, setNsuInicio] = useState('');
   const [forcar, setForcar] = useState(false);
+  const [confirmStop, setConfirmStop] = useState(false);
 
   const certificadosFiltrados = useMemo(() => {
     if (empresaIds.length === 0) return certificados;
@@ -69,13 +72,7 @@ export function MotorAdn() {
 
   return (
     <div>
-      <div className="mb-5">
-        <p className="text-sm uppercase tracking-[0.22em] text-textSoft">Controle de consulta ADN</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">Motor ADN</h1>
-        <p className="mt-2 max-w-3xl text-sm text-textSoft">
-          Inicie consultas por NSU com filtros opcionais. O backend busca NFS-e no ADN, salva XML, baixa ou gera PDF DANFSe e importa tudo para banco/storage ate voce desativar.
-        </p>
-      </div>
+      <PageHeader eyebrow="Automação" title="Motor ADN" description="Configure e inicie consultas automáticas por NSU com segurança." />
 
       <LiveStatusBar />
 
@@ -84,17 +81,17 @@ export function MotorAdn() {
           <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h2 className="flex items-center gap-2 font-bold text-white">
-                <Settings2 size={18} /> Filtros de inicio
+                <Settings2 size={18} /> Filtros de início
               </h2>
-              <p className="mt-1 text-sm text-textSoft">Sem selecionar empresa/certificado, o backend inicia tudo que estiver elegivel.</p>
+              <p className="mt-1 text-sm text-textSoft">Sem selecionar empresa/certificado, o backend inicia tudo que estiver elegível.</p>
             </div>
-            <Badge value={live?.automaticoAtivo ? 'automatico ativo' : 'automatico parado'} tone={live?.automaticoAtivo ? 'success' : 'warning'} />
+            <Badge value={live?.automaticoAtivo ? 'automático ativo' : 'automático parado'} tone={live?.automaticoAtivo ? 'success' : 'warning'} />
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="grid gap-4 md:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
               <label>
-                <span className="label">Intervalo automatico (min)</span>
+                <span className="label">Intervalo automático (min)</span>
                 <input className="field" type="number" min={1} value={intervaloMinutos} onChange={(event) => setIntervaloMinutos(event.target.value)} />
               </label>
               <label>
@@ -107,7 +104,7 @@ export function MotorAdn() {
               </label>
               <label>
                 <span className="label">Modo</span>
-                <input className="field" value="automatico" readOnly />
+                <input className="field" value="automático" readOnly />
               </label>
             </div>
 
@@ -135,7 +132,7 @@ export function MotorAdn() {
               <section className="rounded-xl border border-borderSoft bg-slate-950/30 p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <h3 className="font-semibold text-white">Certificados</h3>
-                  <span className="text-xs text-textSoft">{certificadoIds.length || 'todos elegiveis'}</span>
+                  <span className="text-xs text-textSoft">{certificadoIds.length || 'todos elegíveis'}</span>
                 </div>
                 {loadingCertificados ? (
                   <p className="text-sm text-textSoft">Carregando certificados...</p>
@@ -159,7 +156,7 @@ export function MotorAdn() {
             <div className="grid gap-3 sm:grid-cols-3">
               <label className="flex items-center gap-3 rounded-xl border border-borderSoft bg-slate-950/30 p-3 text-sm text-slate-200">
                 <input type="checkbox" checked={forcar} onChange={(event) => setForcar(event.target.checked)} />
-                Forcar reprocessamento
+                Forçar reprocessamento
               </label>
             </div>
 
@@ -168,7 +165,7 @@ export function MotorAdn() {
                 {iniciar.isPending ? <Loader2 className="animate-spin" size={16} /> : <PlayCircle size={16} />}
                 Iniciar com filtros
               </Button>
-              <Button type="button" variant="danger" onClick={() => desativar.mutate({ cancelar_pendentes: true, cancelar_rodando: true })} disabled={isPending || (!live?.automaticoAtivo && !live?.consultando)}>
+              <Button type="button" variant="danger" onClick={() => setConfirmStop(true)} disabled={isPending || (!live?.automaticoAtivo && !live?.consultando)}>
                 {desativar.isPending ? <Loader2 className="animate-spin" size={16} /> : <PowerOff size={16} />}
                 Desativar
               </Button>
@@ -185,11 +182,14 @@ export function MotorAdn() {
         </Card>
 
         <Card>
-          <h2 className="font-bold text-white">JSON enviado</h2>
-          <p className="mt-1 text-sm text-textSoft">Previa do body para POST /consultas/iniciar.</p>
-          <pre className="mt-4 max-h-[460px] overflow-auto rounded-xl bg-slate-950/50 p-4 text-xs text-slate-300">{JSON.stringify(buildPayload(), null, 2)}</pre>
+          <details>
+            <summary className="cursor-pointer rounded-xl font-bold text-textStrong focus-visible:ring-2 focus-visible:ring-accent">Detalhes técnicos da consulta</summary>
+            <p className="mt-2 text-sm text-textSoft">Prévia dos dados enviados para o backend.</p>
+            <pre className="mt-4 max-h-[460px] overflow-auto rounded-xl bg-slate-950/50 p-4 text-xs text-slate-300">{JSON.stringify(buildPayload(), null, 2)}</pre>
+          </details>
         </Card>
       </div>
+      <ConfirmDialog open={confirmStop} title="Desativar consultas?" description="Consultas pendentes e em execução serão canceladas. Os dados já processados serão mantidos." confirmLabel="Desativar consultas" onClose={() => setConfirmStop(false)} onConfirm={() => { setConfirmStop(false); desativar.mutate({ cancelar_pendentes: true, cancelar_rodando: true }); }} />
     </div>
   );
 }

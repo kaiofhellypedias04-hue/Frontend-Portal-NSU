@@ -1,11 +1,13 @@
-import { AlertCircle, CheckCircle2, Clock3, Loader2, PlayCircle } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock3, PlayCircle } from 'lucide-react';
 import { LiveStatusBar } from '../components/live/LiveStatusBar';
 import { MetricCard } from '../components/ui/Card';
 import { NotasDownloadActions } from '../components/notas/NotasDownloadActions';
 import { Badge } from '../components/ui/Badge';
+import { TableSkeleton } from '../components/ui/Skeleton';
 import { useLiveStatus } from '../hooks/useLiveStatus';
 import { useProcessos } from '../hooks/useProcessos';
 import { formatDateTime } from '../lib/format';
+import { PageHeader } from '../components/ui/PageHeader';
 
 export function Fila() {
   const { data: live } = useLiveStatus();
@@ -13,13 +15,7 @@ export function Fila() {
 
   return (
     <div>
-      <div className="mb-5">
-        <p className="text-sm uppercase tracking-[0.22em] text-textSoft">Motor ADN e fila</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">Consultas automaticas</h1>
-        <p className="mt-2 max-w-3xl text-sm text-textSoft">
-          Ao iniciar, o backend busca NFS-e por NSU no ADN, salva XML, baixa ou gera o PDF DANFSe, importa os dados para banco/storage e continua ate voce desativar.
-        </p>
-      </div>
+      <PageHeader eyebrow="Motor ADN e fila" title="Consultas automáticas" description="Acompanhe as consultas, importações e documentos processados automaticamente pelo backend." />
 
       <LiveStatusBar />
       <NotasDownloadActions filters={{ limit: 500, offset: 0 }} />
@@ -31,25 +27,42 @@ export function Fila() {
         <MetricCard label="Pendentes" value={live?.processosPendentes ?? 0} hint="Aguardando worker">
           <Clock3 className="text-amber-300" size={22} />
         </MetricCard>
-        <MetricCard label="Com erro" value={live?.processosErro ?? 0} hint="Precisam de revisao">
+        <MetricCard label="Com erro" value={live?.processosErro ?? 0} hint="Precisam de revisão">
           <AlertCircle className="text-rose-300" size={22} />
         </MetricCard>
-        <MetricCard label="Ultimo ciclo" value={<span className="text-lg">{formatDateTime(live?.ultimoCicloFim)}</span>} hint="Ultimo processo finalizado">
+        <MetricCard label="Último ciclo" value={<span className="text-lg">{formatDateTime(live?.ultimoCicloFim)}</span>} hint="Último processo finalizado">
           <CheckCircle2 className="text-sky-300" size={22} />
         </MetricCard>
       </div>
 
-      <section className="glass-card overflow-hidden">
-        <div className="border-b border-borderSoft p-4">
-          <h2 className="font-semibold text-white">Processos recentes</h2>
-          <p className="text-sm text-textSoft">Acompanhe cada execucao criada pelo controle automatico de consultas.</p>
-        </div>
-        {isLoading ? (
-          <div className="flex items-center gap-2 p-6 text-textSoft">
-            <Loader2 className="animate-spin" size={18} /> Carregando fila...
+      {isLoading ? (
+        <TableSkeleton title="Carregando fila..." rows={6} />
+      ) : (
+        <section className="glass-card overflow-hidden">
+          <div className="border-b border-borderSoft p-4">
+            <h2 className="font-semibold text-white">Processos recentes</h2>
+            <p className="text-sm text-textSoft">Acompanhe cada execução criada pelo controle automático de consultas.</p>
           </div>
-        ) : (
-          <div className="overflow-x-auto">
+
+          <div className="grid gap-3 p-4 md:hidden">
+            {processos.map((p) => (
+              <article key={p.id} className="rounded-2xl border border-borderSoft bg-panel p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-bold text-white">#{p.id}</p>
+                    <p className="mt-0.5 text-xs text-textSoft">Empresa #{p.empresa_id}{p.certificado_id ? ` · Certificado #${p.certificado_id}` : ''}</p>
+                  </div>
+                  <Badge value={p.status} />
+                </div>
+                <div className="mt-3 flex items-center justify-between gap-3 text-xs text-textSoft">
+                  <span>{p.tipo}</span>
+                  <span>{formatDateTime(p.updated_at || p.created_at)}</span>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto md:block">
             <table className="w-full min-w-[780px] text-left text-sm">
               <thead className="bg-slate-950/40 text-xs uppercase tracking-[0.14em] text-textSoft">
                 <tr>
@@ -77,8 +90,8 @@ export function Fila() {
               </tbody>
             </table>
           </div>
-        )}
-      </section>
+        </section>
+      )}
     </div>
   );
 }

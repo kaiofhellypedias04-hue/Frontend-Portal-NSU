@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "preview": "vite preview --host 0.0.0.0",
+    "audit:ui": "node scripts/ui-audit.mjs",
+    "check": "npm run audit:ui && tsc -b --pretty false && vite build"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.7",

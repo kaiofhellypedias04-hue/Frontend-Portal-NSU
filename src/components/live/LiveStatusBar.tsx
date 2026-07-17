@@ -21,10 +21,10 @@ export function LiveStatusBar() {
   return (
     <section className="glass-card mb-5 flex flex-col gap-4 p-4 xl:flex-row xl:items-center xl:justify-between">
       <div className="flex flex-wrap items-center gap-2">
-        <Badge value={isError ? 'Monitoramento indisponivel' : label} tone={tone} />
+        <Badge value={isError ? 'Monitoramento indisponível' : label} tone={tone} />
         <span className="inline-flex items-center gap-2 text-sm text-textSoft">
           <Radio size={16} className={data?.consultando ? 'text-emerald-300' : data?.filaAtiva ? 'text-amber-300' : 'text-slate-500'} />
-          {data?.consultando ? 'Buscando NSU, XML e PDF' : data?.automaticoAtivo ? 'Aguardando certificados elegiveis' : data?.filaAtiva ? 'Fila com pendencias' : 'Fila aguardando'}
+          {data?.consultando ? 'Buscando NSU, XML e PDF' : data?.automaticoAtivo ? 'Aguardando certificados elegíveis' : data?.filaAtiva ? 'Fila com pendências' : 'Fila aguardando'}
         </span>
         <span className="inline-flex items-center gap-2 text-sm text-textSoft">
           <Clock3 size={16} />
@@ -40,10 +40,10 @@ export function LiveStatusBar() {
           </span>
           <span className="inline-flex items-center gap-2">
             <Activity size={16} />
-            {data?.consultando ? 'Fluxo real ativo' : 'Proximo ciclo'}: <strong className="text-white">{formatSeconds(data?.proximoCicloEmSegundos)}</strong>
+            {data?.consultando ? 'Fluxo real ativo' : 'Próximo ciclo'}: <strong className="text-white">{formatSeconds(data?.proximoCicloEmSegundos)}</strong>
           </span>
           <span>{isLoading ? 'Carregando status...' : statusMessage}</span>
-          <span>Ultima nota: {formatDateTime(data?.ultimaNotaAtualizadaEm)}</span>
+          <span>Última nota: {formatDateTime(data?.ultimaNotaAtualizadaEm)}</span>
         </div>
         <StartConsultasButton automaticoAtivo={data?.automaticoAtivo} disabled={isLoading} />
       </div>

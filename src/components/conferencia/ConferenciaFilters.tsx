@@ -1,10 +1,26 @@
-import { ChevronDown, Filter, X } from 'lucide-react';
-import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { ChevronDown, Filter, SlidersHorizontal, X } from 'lucide-react';
+import type { FormEvent, ReactNode } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../ui/Button';
+import { FilterChips, type FilterChip } from '../ui/FilterChips';
 import { useEmpresas } from '../../hooks/useEmpresas';
-import { onlyDigits } from '../../lib/format';
+import { formatDate, onlyDigits } from '../../lib/format';
 import type { NotasFilters } from '../../types/api';
+import { SavedViews } from '../ui/SavedViews';
+
+const CHIP_LABELS: Record<string, string> = {
+  status: 'Status',
+  tipo: 'Tipo de nota',
+  status_simples_nacional: 'Tipo de nota',
+  prioridade: 'Prioridade',
+  responsavel: 'Responsável',
+  conferencia_status: 'Conferência',
+  incidencia_iss: 'Incidência do ISS',
+  numero: 'Número',
+  prestador_nome: 'Prestador',
+  prestador_cnpj: 'CNPJ prestador',
+  tomador_cnpj: 'CNPJ tomador',
+};
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -25,10 +41,32 @@ export function ConferenciaFilters({
   incidenciaOptions?: string[];
 }) {
   const [open, setOpen] = useState(true);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [draft, setDraft] = useState<NotasFilters>(value);
   const { data: empresas = [] } = useEmpresas();
+  useEffect(() => { const toggle = () => setOpen((state) => !state); window.addEventListener('portal:toggle-filters', toggle); return () => window.removeEventListener('portal:toggle-filters', toggle); }, []);
 
-  const activeCount = useMemo(() => Object.entries(value).filter(([key, val]) => !['limit', 'offset', 'sort'].includes(key) && Boolean(val)).length, [value]);
+  const chips = useMemo<FilterChip[]>(() => {
+    const result: FilterChip[] = [];
+    for (const [key, label] of Object.entries(CHIP_LABELS)) {
+      const filterValue = value[key as keyof NotasFilters];
+      if (filterValue) result.push({ key, label: `${label}: ${filterValue}` });
+    }
+    if (value.empresa_id) {
+      const empresa = empresas.find((item) => String(item.id) === String(value.empresa_id));
+      result.push({ key: 'empresa_id', label: `Empresa: ${empresa?.nome || value.empresa_id}` });
+    }
+    if (value.data_inicio) result.push({ key: 'data_inicio', label: `De: ${formatDate(value.data_inicio)}` });
+    if (value.data_fim) result.push({ key: 'data_fim', label: `Até: ${formatDate(value.data_fim)}` });
+    return result;
+  }, [value, empresas]);
+
+  function removeFilter(key: string) {
+    const next: NotasFilters = { ...value, [key]: undefined, offset: 0 };
+    if (!next.data_inicio && !next.data_fim) next.filtrar_por_data = undefined;
+    setDraft(next);
+    onChange(next);
+  }
 
   function setField(key: keyof NotasFilters, fieldValue: string) {
     const valueToSave = key === 'prestador_cnpj' || key === 'tomador_cnpj' ? onlyDigits(fieldValue) : fieldValue;
@@ -58,7 +96,8 @@ export function ConferenciaFilters({
     }));
   }
 
-  function apply() {
+  function apply(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     const { valor_minimo: _valorMinimo, valor_maximo: _valorMaximo, valor_min: _valorMin, valor_max: _valorMax, ...filtersToApply } = draft;
     onChange({ ...filtersToApply, limit: 500, offset: 0 });
   }
@@ -70,25 +109,20 @@ export function ConferenciaFilters({
   }
 
   return (
-    <section className="glass-card mb-5 overflow-hidden">
-      <div className="flex flex-col gap-3 border-b border-borderSoft p-4 lg:flex-row lg:items-center lg:justify-between">
-        <button className="flex items-center gap-2 text-left" onClick={() => setOpen((state) => !state)}>
-          <Filter size={18} className="text-sky-300" />
-          <div>
-            <h2 className="font-semibold text-white">Filtros</h2>
-            <p className="text-sm text-textSoft">Use os mesmos filtros para consultar a tabela e baixar XML/PDF.</p>
-          </div>
-          <ChevronDown size={18} className={open ? 'rotate-180 transition' : 'transition'} />
+    <section className="mb-5 overflow-hidden rounded-2xl border border-borderSoft bg-panel shadow-card">
+      <div className="flex flex-col gap-4 p-4 sm:p-5 xl:flex-row xl:items-center xl:justify-between">
+        <button className="flex min-h-11 items-center gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" onClick={() => setOpen((state) => !state)} aria-expanded={open}>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent"><Filter size={19} /></span>
+          <div className="min-w-0"><h2 className="font-bold text-textStrong">Filtrar notas</h2><p className="text-sm text-textSoft">Encontre rapidamente o que precisa.</p></div>
+          <ChevronDown size={18} className={open ? 'ml-1 rotate-180 text-textSoft transition' : 'ml-1 text-textSoft transition'} />
         </button>
-        <div className="flex flex-wrap gap-2">
-          {activeCount ? <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-3 py-2 text-xs text-sky-200">{activeCount} filtros ativos</span> : null}
-          <Button variant="ghost" onClick={() => setOpen((state) => !state)}>{open ? 'Ocultar filtros' : 'Mostrar filtros'}</Button>
-        </div>
+        <div className="min-w-0"><SavedViews storageKey="views:conferencia" value={value} onApply={(saved) => { setDraft(saved); onChange(saved); }} /></div>
       </div>
+      <FilterChips chips={chips} onRemove={removeFilter} />
 
       {open ? (
-        <div className="space-y-4 p-4">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <form className="border-t border-borderSoft" onSubmit={apply}>
+          <div className="grid gap-4 p-4 sm:p-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <Field label="Status">
               <select className="field" value={draft.status || ''} onChange={(e) => setField('status', e.target.value)}>
                 <option value="">Todos</option>
@@ -141,6 +175,17 @@ export function ConferenciaFilters({
                 <option value="observacao">Observação</option>
               </select>
             </Field>
+          </div>
+
+          <div className="border-t border-borderSoft/70 bg-panelInset/40 px-4 py-3 sm:px-5">
+            <button type="button" className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-textBody transition hover:bg-panel2 hover:text-accent" onClick={() => setAdvancedOpen((state) => !state)} aria-expanded={advancedOpen}>
+              <SlidersHorizontal size={17} />
+              {advancedOpen ? 'Ocultar filtros avançados' : 'Mais filtros'}
+              <ChevronDown size={16} className={advancedOpen ? 'rotate-180 transition' : 'transition'} />
+            </button>
+
+            {advancedOpen ? (
+              <div className="mt-3 grid gap-4 border-t border-borderSoft/70 pt-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 
             <Field label="Incidência do ISS">
               <input
@@ -190,13 +235,16 @@ export function ConferenciaFilters({
               <input className="field" value={draft.tomador_cnpj || ''} onChange={(e) => setField('tomador_cnpj', e.target.value)} placeholder="Somente números" />
             </Field>
 
+              </div>
+            ) : null}
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Button variant="primary" onClick={apply}>Aplicar filtros</Button>
-            <Button variant="ghost" onClick={clear}><X size={16} /> Limpar</Button>
+          <div className="flex flex-col gap-2 border-t border-borderSoft bg-panel px-4 py-4 sm:flex-row sm:items-center sm:px-5">
+            <Button className="sm:min-w-44" type="submit" variant="primary">Aplicar filtros</Button>
+            <Button type="button" variant="ghost" onClick={clear}><X size={16} /> Limpar</Button>
+            <span className="text-xs text-textSoft sm:ml-auto">Pressione Enter para aplicar</span>
           </div>
-        </div>
+        </form>
       ) : null}
     </section>
   );

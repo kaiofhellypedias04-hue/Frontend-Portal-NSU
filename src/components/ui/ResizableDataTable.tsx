@@ -2,6 +2,7 @@ import type { KeyboardEvent, PointerEvent as ReactPointerEvent, ReactNode } from
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useElementWidth } from '../../hooks/useElementWidth';
 import { classNames } from '../../lib/format';
+import { Columns3 } from 'lucide-react';
 
 type ColumnAlign = 'left' | 'center' | 'right';
 
@@ -94,6 +95,10 @@ export function ResizableDataTable<T>({
   storageKey,
 }: ResizableDataTableProps<T>) {
   const [widths, setWidths] = useState<Record<string, number>>(() => buildInitialWidths(sourceColumns, storageKey));
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  const visibilityKey = storageKey ? `${storageKey}:hidden` : undefined;
+  const [hiddenColumns, setHiddenColumns] = useState<string[]>(() => { try { return visibilityKey ? JSON.parse(localStorage.getItem(visibilityKey) || '[]') as string[] : []; } catch { return []; } });
+  const activeSourceColumns = useMemo(() => sourceColumns.filter((column) => !hiddenColumns.includes(column.key)), [sourceColumns, hiddenColumns]);
   const widthsRef = useRef(widths);
   const resizingRef = useRef<{ key: string; startX: number; startWidth: number } | null>(null);
   const frameRef = useRef<number | null>(null);
@@ -109,7 +114,7 @@ export function ResizableDataTable<T>({
     setWidths((previous) => {
       const next = { ...previous };
       let changed = false;
-      const sourceKeys = new Set(sourceColumns.map((column) => column.key));
+      const sourceKeys = new Set(activeSourceColumns.map((column) => column.key));
 
       for (const key of Object.keys(next)) {
         if (!sourceKeys.has(key)) {
@@ -118,7 +123,7 @@ export function ResizableDataTable<T>({
         }
       }
 
-      for (const column of sourceColumns) {
+      for (const column of activeSourceColumns) {
         const min = minWidthFor(column);
         const max = maxWidthFor(column);
         const current = next[column.key];
@@ -130,11 +135,11 @@ export function ResizableDataTable<T>({
       }
       return changed ? next : previous;
     });
-  }, [sourceColumns]);
+  }, [activeSourceColumns]);
 
   const columns = useMemo(
-    () => sourceColumns.map((column) => ({ ...column, width: widths[column.key] ?? column.width })),
-    [sourceColumns, widths],
+    () => activeSourceColumns.map((column) => ({ ...column, width: widths[column.key] ?? column.width })),
+    [activeSourceColumns, widths],
   );
   const totalWidth = useMemo(() => columns.reduce((total, column) => total + column.width, 0), [columns]);
   const fillerWidth = Math.max(0, Math.floor(tableArea.width - totalWidth));
@@ -218,6 +223,7 @@ export function ResizableDataTable<T>({
 
   return (
     <div className={classNames('min-w-0', wrapperClassName)}>
+      {storageKey ? <div className="relative flex justify-end border-b border-borderSoft bg-panel px-3 py-2"><button className="inline-flex min-h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold text-textBody hover:bg-panel2" onClick={() => setColumnsOpen((value) => !value)}><Columns3 size={17} /> Colunas</button>{columnsOpen ? <div className="absolute right-3 top-12 z-30 max-h-72 w-64 overflow-auto rounded-xl border border-borderSoft bg-panel p-2 shadow-card">{sourceColumns.map((column) => { const visible = !hiddenColumns.includes(column.key); return <label key={column.key} className="flex min-h-10 items-center gap-3 rounded-lg px-2 text-sm text-textBody hover:bg-panel2"><input type="checkbox" checked={visible} disabled={visible && activeSourceColumns.length === 1} onChange={() => { const next = visible ? [...hiddenColumns, column.key] : hiddenColumns.filter((key) => key !== column.key); setHiddenColumns(next); if (visibilityKey) localStorage.setItem(visibilityKey, JSON.stringify(next)); }} />{column.label}</label>; })}</div> : null}</div> : null}
       <div ref={tableArea.ref} className="resizable-table-scroll w-full min-w-0 overflow-x-auto">
         <table
           className={classNames('resizable-table table-fixed border-collapse text-left text-sm', tableClassName)}
@@ -229,7 +235,7 @@ export function ResizableDataTable<T>({
             ))}
             {fillerWidth > 0 ? <col style={{ width: fillerWidth }} /> : null}
           </colgroup>
-          <thead className="bg-slate-950/50 text-xs uppercase tracking-[0.12em] text-textSoft">
+          <thead className="bg-panelInset text-xs uppercase tracking-[0.12em] text-textSoft">
             <tr>
               {columns.map((column) => {
                 const definition = columnByKey.get(column.key);
@@ -245,7 +251,7 @@ export function ResizableDataTable<T>({
                       className="group absolute bottom-0 right-[-4px] top-0 z-20 w-2 cursor-col-resize select-none touch-none"
                       onPointerDown={(event) => startResize(event, column)}
                     >
-                      <span className="absolute bottom-1 top-1 left-1/2 w-px -translate-x-1/2 bg-sky-300/0 transition group-hover:bg-sky-300/80" />
+                      <span className="absolute bottom-1 top-1 left-1/2 w-px -translate-x-1/2 bg-accent/0 transition group-hover:bg-accent/80" />
                     </span>
                   </th>
                 );
@@ -262,7 +268,8 @@ export function ResizableDataTable<T>({
                   role={onRowClick ? 'button' : undefined}
                   tabIndex={onRowClick ? 0 : undefined}
                   className={classNames(
-                    onRowClick && 'cursor-pointer transition hover:bg-slate-800/30 focus:bg-slate-800/40 focus:outline-none',
+                    'render-optimized',
+                    onRowClick && 'cursor-pointer transition hover:bg-panel2 focus:outline-none focus-visible:bg-panel2 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent/60',
                     extraRowClass,
                   )}
                   onClick={() => {
@@ -276,7 +283,7 @@ export function ResizableDataTable<T>({
                     return (
                       <td
                         key={column.key}
-                        className={classNames('overflow-hidden whitespace-nowrap text-slate-200', cellPadding, alignClass(definition?.align), definition?.cellClassName)}
+                        className={classNames('overflow-hidden whitespace-nowrap text-textBody', cellPadding, alignClass(definition?.align), definition?.cellClassName)}
                         style={{ width: column.width }}
                       >
                         <div className="min-w-0 overflow-hidden text-ellipsis whitespace-nowrap">

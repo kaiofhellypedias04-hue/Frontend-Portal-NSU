@@ -82,7 +82,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
       {current ? (
         <div className="space-y-5">
           {detalheQuery.error ? (
-            <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200">Nao foi possivel atualizar o processo agora. Mostrando dados da lista.</div>
+            <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200">Não foi possível atualizar o processo agora. Mostrando dados da lista.</div>
           ) : null}
 
           <div className="flex flex-wrap gap-2">
@@ -97,7 +97,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
             <section className="rounded-2xl border border-borderSoft bg-slate-950/20 p-4">
               <h3 className="mb-3 text-base font-semibold text-white">Resumo</h3>
               {summaryQuery.isLoading ? <Loading label="Carregando resumo operacional..." /> : null}
-              {summaryQuery.error ? <Fallback text="Nao foi possivel carregar o resumo consolidado agora. Mostrando dados basicos do processo." /> : null}
+              {summaryQuery.error ? <Fallback text="Não foi possível carregar o resumo consolidado agora. Mostrando dados básicos do processo." /> : null}
               <div className="grid gap-3 sm:grid-cols-2">
                 <Row label="Total de notas" value={summaryQuery.data?.total_notas ?? summaryQuery.data?.total} />
                 <Row label="Corretas" value={summaryQuery.data?.corretas} />
@@ -107,7 +107,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
                 <Row label="Substituidas" value={summaryQuery.data?.substituidas} />
                 <Row label="Total XML" value={summaryQuery.data?.total_xml} />
                 <Row label="Total PDF" value={summaryQuery.data?.total_pdf} />
-                <Row label="Valor total servicos" value={formatCurrency(summaryQuery.data?.valor_total_servicos)} />
+                <Row label="Valor total serviços" value={formatCurrency(summaryQuery.data?.valor_total_servicos)} />
                 <Row label="Valor total ISS" value={formatCurrency(summaryQuery.data?.valor_total_iss)} />
                 <Row label="Empresa" value={`#${current.empresa_id}`} />
                 <Row label="Certificado" value={current.certificado_id ? `#${current.certificado_id}` : '-'} />
@@ -187,7 +187,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
                 </label>
               </div>
               {arquivosQuery.isLoading ? <Loading label="Carregando arquivos..." /> : null}
-              {arquivosQuery.error ? <Fallback text="Nao foi possivel carregar os arquivos do processo agora." /> : null}
+              {arquivosQuery.error ? <Fallback text="Não foi possível carregar os arquivos do processo agora." /> : null}
               {!arquivosQuery.isLoading && !arquivosQuery.error && !arquivosQuery.data?.length ? <Fallback text="Nenhum arquivo encontrado para este processo." /> : null}
               {arquivosQuery.data?.length ? (
                 <div className="overflow-x-auto">
@@ -242,7 +242,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
                 </label>
               </div>
               {notasQuery.isLoading ? <Loading label="Carregando notas..." /> : null}
-              {notasQuery.error ? <Fallback text="Nao foi possivel carregar as notas do processo agora." /> : null}
+              {notasQuery.error ? <Fallback text="Não foi possível carregar as notas do processo agora." /> : null}
               {!notasQuery.isLoading && !notasQuery.error && !notasQuery.data?.length ? <Fallback text="Nenhuma nota encontrada para este processo." /> : null}
               {notasQuery.data?.length ? (
                 <div className="overflow-x-auto">
@@ -252,7 +252,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
                         <th className="px-3 py-2">Nota</th>
                         <th className="px-3 py-2">Empresa</th>
                         <th className="px-3 py-2">Prestador</th>
-                        <th className="px-3 py-2">Cod. servico</th>
+                        <th className="px-3 py-2">Cód. serviço</th>
                         <th className="px-3 py-2">Valor</th>
                         <th className="px-3 py-2">Status</th>
                         <th className="px-3 py-2">Conferencia</th>

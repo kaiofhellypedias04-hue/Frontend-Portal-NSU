@@ -1,5 +1,6 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '../lib/api';
+import { toast } from '../components/ui/Toaster';
 import { onlyDigits } from '../lib/format';
 import { cleanClientOnlyFiltersForApi, dedupeNotas, filterNotasByPortalFilters, notaUniqueKey } from '../lib/notaFilters';
 import { invalidatePortalData } from './queryInvalidation';
@@ -80,6 +81,7 @@ export function useSalvarConferenciaNota() {
     mutationFn: ({ notaId, payload }: { notaId: number; payload: ConferenciaPayload }) => api.salvarConferenciaNota(notaId, payload),
     onSuccess: async (nota, variables) => {
       queryClient.setQueryData(['nota-detalhe', variables.notaId], nota);
+      toast.success('Conferência salva');
       await invalidatePortalData(queryClient);
       await queryClient.invalidateQueries({ queryKey: ['nota-detalhe', variables.notaId] });
     },

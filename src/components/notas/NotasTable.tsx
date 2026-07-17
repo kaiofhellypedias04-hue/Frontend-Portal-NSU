@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Badge } from '../ui/Badge';
 import { EmptyState } from '../ui/EmptyState';
 import { InfiniteScrollSentinel } from '../ui/InfiniteScrollSentinel';
+import { TableSkeleton } from '../ui/Skeleton';
 import { ResizableDataTable, type ResizableDataColumn } from '../ui/ResizableDataTable';
 import { formatCurrency, formatDate, formatServiceCode, timeAgo } from '../../lib/format';
 import type { Nota } from '../../types/api';
@@ -58,7 +59,7 @@ function operationalBadgeTone(value?: string | null, dangerWhen?: boolean | null
 // nao terem uma mistura de text-sm (herdado da tabela) com text-[11px]
 // (badges), o que fazia o texto parecer com tamanhos/formatos diferentes
 // entre colunas na mesma linha.
-const CELL_TEXT_SIZE = 'text-[11px]';
+const CELL_TEXT_SIZE = 'text-xs';
 
 const NOTAS_COLUMNS: NotaColumn[] = [
   {
@@ -105,7 +106,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
   },
   {
     key: 'codigo_servico',
-    label: 'Cod. servico',
+    label: 'Cód. serviço',
     width: 112,
     minWidth: 42,
     align: 'center',
@@ -121,7 +122,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     width: 104,
     minWidth: 42,
     cellClassName: CELL_TEXT_SIZE,
-    render: (nota) => <Badge value={nota.status_rotulo || nota.status_documento || 'Sem status'} className="max-w-full truncate px-2 text-[11px]" />,
+    render: (nota) => <Badge value={nota.status_rotulo || nota.status_documento || 'Sem status'} className="max-w-full truncate px-2 text-xs" />,
   },
   {
     key: 'divergencia_operacional',
@@ -129,7 +130,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     width: 130,
     minWidth: 44,
     cellClassName: CELL_TEXT_SIZE,
-    render: (nota) => <Badge value={nota.divergencia_fila_label || nota.divergencia || 'Sem divergência'} tone={operationalBadgeTone(nota.divergencia_fila_label, nota.divergencia_fila_final)} className="max-w-full truncate px-2 text-[11px]" />,
+    render: (nota) => <Badge value={nota.divergencia_fila_label || nota.divergencia || 'Sem divergência'} tone={operationalBadgeTone(nota.divergencia_fila_label, nota.divergencia_fila_final)} className="max-w-full truncate px-2 text-xs" />,
   },
   {
     key: 'prioridade_operacional',
@@ -137,7 +138,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     width: 105,
     minWidth: 42,
     cellClassName: CELL_TEXT_SIZE,
-    render: (nota) => <Badge value={nota.prioridade_fila || nota.prioridade || 'baixa'} tone={operationalBadgeTone(nota.prioridade_fila || nota.prioridade)} className="max-w-full truncate px-2 text-[11px]" />,
+    render: (nota) => <Badge value={nota.prioridade_fila || nota.prioridade || 'baixa'} tone={operationalBadgeTone(nota.prioridade_fila || nota.prioridade)} className="max-w-full truncate px-2 text-xs" />,
   },
   {
     key: 'responsavel_operacional',
@@ -154,7 +155,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     minWidth: 36,
     align: 'center',
     cellClassName: CELL_TEXT_SIZE,
-    render: (nota) => <Badge value={slaLabel(nota)} tone={operationalBadgeTone(typeof nota.sla === 'object' ? nota.sla?.tone : nota.sla_status)} className="max-w-full truncate px-2 text-[11px]" />,
+    render: (nota) => <Badge value={slaLabel(nota)} tone={operationalBadgeTone(typeof nota.sla === 'object' ? nota.sla?.tone : nota.sla_status)} className="max-w-full truncate px-2 text-xs" />,
   },
   {
     key: 'atualizacao',
@@ -222,19 +223,15 @@ export function NotasTable({
   }, [notas.length]);
 
   if (isLoading && notas.length === 0) {
-    return (
-      <div className="glass-card flex items-center justify-center gap-2 p-10 text-textSoft">
-        <Loader2 className="animate-spin" size={18} /> Buscando notas consultadas...
-      </div>
-    );
+    return <TableSkeleton title="Buscando notas consultadas..." />;
   }
 
   if (error && notas.length === 0) {
-    return <EmptyState title="Nao foi possivel carregar as notas" description={error.message} />;
+    return <EmptyState title="Não foi possível carregar as notas" description={error.message} />;
   }
 
   if (notas.length === 0) {
-    return <EmptyState title="Nenhuma nota encontrada" description="Quando o backend consultar notas, elas aparecem aqui automaticamente. Ajuste os filtros se necessario." />;
+    return <EmptyState title="Nenhuma nota encontrada" description="Quando o backend consultar notas, elas aparecem aqui automaticamente. Ajuste os filtros se necessário." />;
   }
 
   return (
@@ -242,7 +239,7 @@ export function NotasTable({
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-4 border-b border-borderSoft p-4">
         <div className="min-w-0">
           <h2 className="font-semibold text-white">Notas consultadas</h2>
-          <p className="truncate text-sm text-textSoft">Ultimas importadas primeiro. Use o scroll horizontal para ver todas as colunas.</p>
+          <p className="truncate text-sm text-textSoft">Últimas importadas primeiro. Use o scroll horizontal para ver todas as colunas.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Badge value={totalLabel} tone="info" />
@@ -269,7 +266,7 @@ export function NotasTable({
                   >
                     {isLoadingAll ? 'Carregando total...' : `Carregar total${totalCount && totalCount > notas.length ? ` (${totalCount})` : ''}`}
                   </button>
-                  <p className="px-3 pb-1 text-xs text-textSoft">Busca todas as notas dos filtros atuais sem precisar ir ate o final.</p>
+                  <p className="px-3 pb-1 text-xs text-textSoft">Busca todas as notas dos filtros atuais sem precisar ir até o final.</p>
                 </div>
               ) : null}
             </div>
@@ -279,7 +276,7 @@ export function NotasTable({
       </div>
       {error ? (
         <div className="border-b border-amber-400/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-200">
-          Nao consegui atualizar as notas agora. A tabela abaixo pode estar mostrando o ultimo resultado em cache: {error.message}
+          Não consegui atualizar as notas agora. A tabela abaixo pode estar mostrando o último resultado em cache: {error.message}
         </div>
       ) : null}
 

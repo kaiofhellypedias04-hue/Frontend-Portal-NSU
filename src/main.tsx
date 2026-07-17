@@ -6,13 +6,14 @@ import { router } from './app/router';
 import { queryClient } from './app/query-client';
 import { OperatorProvider } from './hooks/useOperator';
 import './styles.css';
+import { AppErrorBoundary } from './components/ui/AppErrorBoundary';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <AppErrorBoundary><QueryClientProvider client={queryClient}>
       <OperatorProvider>
         <RouterProvider router={router} />
       </OperatorProvider>
-    </QueryClientProvider>
+    </QueryClientProvider></AppErrorBoundary>
   </React.StrictMode>,
 );

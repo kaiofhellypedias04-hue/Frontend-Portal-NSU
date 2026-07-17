@@ -7,6 +7,8 @@ import { NotasDownloadActions } from '../components/notas/NotasDownloadActions';
 import { useConferenciaNotasInfinite } from '../hooks/useConferenciaNotas';
 import { dedupeNotas } from '../lib/notaFilters';
 import type { DirecaoNota, Nota, NotasFilters, TipoNota } from '../types/api';
+import { PageHeader } from '../components/ui/PageHeader';
+import { usePersistentState, useRestoreScroll } from '../hooks/usePersistentState';
 
 type ConferenciaProps = {
   tipoNotaFixo?: Extract<TipoNota, 'tomada' | 'prestada'>;
@@ -42,8 +44,10 @@ function countBy(notas: Nota[], predicate: (nota: Nota) => boolean) {
   return notas.reduce((total, nota) => total + (predicate(nota) ? 1 : 0), 0);
 }
 
-export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferencia de Notas', descricao }: ConferenciaProps) {
-  const [filters, setFilters] = useState<NotasFilters>(DEFAULT_FILTERS);
+export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferência de Notas', descricao }: ConferenciaProps) {
+  const persistenceKey = tipoNotaFixo === 'tomada' ? 'conferencia:tomados' : tipoNotaFixo === 'prestada' ? 'conferencia:prestados' : 'conferencia';
+  const [filters, setFilters] = usePersistentState<NotasFilters>(`filters:${persistenceKey}`, DEFAULT_FILTERS);
+  useRestoreScroll(persistenceKey);
   const [selectedNota, setSelectedNota] = useState<Nota | null>(null);
   const fixedFilters = useMemo<NotasFilters>(() => ({
     ...(tipoNotaFixo ? { tipo_nota: tipoNotaFixo } : {}),
@@ -62,14 +66,14 @@ export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferenc
   const lastPage = data?.pages[data.pages.length - 1];
   const totalNotas = lastPage?.total ?? notas.length;
   const defaultDescricao = tipoNotaFixo === 'tomada'
-    ? 'Notas de servicos tomados/recebidos pela empresa.'
+    ? 'Notas de serviços tomados/recebidos pela empresa.'
     : tipoNotaFixo === 'prestada'
-      ? 'Notas de servicos prestados/emitidos pela empresa.'
-      : 'Tela operacional para filtrar, conferir e acompanhar pendencias das NFS-e importadas pelo backend.';
+      ? 'Notas de serviços prestados/emitidos pela empresa.'
+      : 'Tela operacional para filtrar, conferir e acompanhar pendências das NFS-e importadas pelo backend.';
   const emptyDescription = tipoNotaFixo === 'tomada'
-    ? 'Nenhuma nota de servico tomado encontrada para os filtros selecionados.'
+    ? 'Nenhuma nota de serviço tomado encontrada para os filtros selecionados.'
     : tipoNotaFixo === 'prestada'
-      ? 'Nenhuma nota de servico prestado encontrada para os filtros selecionados.'
+      ? 'Nenhuma nota de serviço prestado encontrada para os filtros selecionados.'
       : undefined;
 
   const summary = useMemo(() => ({
@@ -99,24 +103,18 @@ export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferenc
 
   return (
     <div className="min-w-0">
-      <div className="mb-5">
-        <p className="text-sm uppercase tracking-[0.22em] text-textSoft">Operacao fiscal</p>
-        <h1 className="mt-1 text-2xl font-bold text-white">{titulo}</h1>
-        <p className="mt-2 max-w-3xl text-sm text-textSoft">
-          {descricao || defaultDescricao}
-        </p>
-      </div>
+      <PageHeader eyebrow="Operação fiscal" title={titulo} description={descricao || defaultDescricao} />
 
       <div className="mb-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
         <SummaryCard label="Notas nos filtros" value={summary.total} icon={Clock} tone="bg-sky-400/10 text-sky-300" />
         <SummaryCard label="Pendentes carregadas" value={summary.pendentes} icon={Clock} tone="bg-amber-400/10 text-amber-300" />
         <SummaryCard label="OK carregadas" value={summary.ok} icon={CheckCircle2} tone="bg-emerald-400/10 text-emerald-300" />
         <SummaryCard label="Corrigir carregadas" value={summary.corrigir} icon={Wrench} tone="bg-rose-400/10 text-rose-300" />
-        <SummaryCard label="Observacao carregadas" value={summary.observacao} icon={MessageSquareText} tone="bg-sky-400/10 text-sky-300" />
+        <SummaryCard label="Observação carregadas" value={summary.observacao} icon={MessageSquareText} tone="bg-sky-400/10 text-sky-300" />
         <SummaryCard label="SLA vencido carregadas" value={summary.slaVencido} icon={AlertTriangle} tone="bg-orange-400/10 text-orange-300" />
       </div>
 
-      <NotasDownloadActions filters={effectiveFilters} notasPaginaAtual={notas} />
+      <NotasDownloadActions filters={effectiveFilters} />
       <ConferenciaFilters value={effectiveFilters} onChange={updateFilters} incidenciaOptions={incidenciaOptions} />
       <ConferenciaTable
         notas={notas}
