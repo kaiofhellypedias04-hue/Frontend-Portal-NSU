@@ -53,7 +53,9 @@ export function useNotasTotals(filters?: NotasFilters) {
   return useQuery({
     queryKey: ['notas-totals', clean],
     queryFn: () => fetchAllNotasForSummary(clean),
-    staleTime: 5 * 60_000,
+    refetchInterval: 60_000,
+    refetchIntervalInBackground: false,
+    staleTime: 30_000,
     refetchOnWindowFocus: false,
     placeholderData: (previousData) => previousData,
   });

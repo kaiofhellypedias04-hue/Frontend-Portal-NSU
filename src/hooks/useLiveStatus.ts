@@ -81,6 +81,10 @@ export function useLiveStatus() {
     ].join(':');
     if (previousCounters.current !== null && previousCounters.current !== counters) {
       queryClient.invalidateQueries({ queryKey: ['notas'] });
+      queryClient.invalidateQueries({ queryKey: ['notas-infinite'] });
+      queryClient.invalidateQueries({ queryKey: ['notas-totals'] });
+      queryClient.invalidateQueries({ queryKey: ['conferencia-notas'] });
+      queryClient.invalidateQueries({ queryKey: ['conferencia-notas-infinite'] });
       queryClient.invalidateQueries({ queryKey: ['processos'] });
       queryClient.invalidateQueries({ queryKey: ['certificados'] });
       if (import.meta.env.DEV) {

@@ -20,7 +20,7 @@ export function useNotas(filters?: NotasFilters, refetchInterval = 10_000) {
       return result;
     },
     refetchInterval,
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
     staleTime: 30_000,
     placeholderData: (previousData) => previousData,
@@ -28,7 +28,9 @@ export function useNotas(filters?: NotasFilters, refetchInterval = 10_000) {
 }
 
 export function useNotasInfinite(filters?: NotasFilters, refetchInterval = 10_000) {
-  const pageSize = filters?.limit ?? 500;
+  // Um primeiro lote menor deixa a tela interativa rapidamente. As demais
+  // notas continuam sendo carregadas pela rolagem infinita ou por "carregar tudo".
+  const pageSize = Math.min(filters?.limit ?? 100, 100);
 
   return useInfiniteQuery({
     queryKey: ['notas-infinite', { ...filters, limit: pageSize, offset: undefined }],
@@ -59,7 +61,7 @@ export function useNotasInfinite(filters?: NotasFilters, refetchInterval = 10_00
       return undefined;
     },
     refetchInterval,
-    refetchIntervalInBackground: true,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
     staleTime: 30_000,
     placeholderData: (previousData) => previousData,

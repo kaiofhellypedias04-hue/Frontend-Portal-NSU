@@ -30,7 +30,8 @@ export function useConferenciaNotas(filters?: NotasFilters) {
         items: dedupeNotas(filterNotasByPortalFilters(response.items, clean)),
       };
     },
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
     staleTime: 30_000,
     placeholderData: (previousData) => previousData,
@@ -38,7 +39,8 @@ export function useConferenciaNotas(filters?: NotasFilters) {
 }
 
 export function useConferenciaNotasInfinite(filters?: NotasFilters) {
-  const pageSize = filters?.limit ?? 500;
+  // Evita montar centenas de linhas antes de a pagina ficar utilizavel.
+  const pageSize = Math.min(filters?.limit ?? 100, 100);
   const clean = cleanFilters({ ...filters, limit: pageSize });
   const apiFilters = cleanClientOnlyFiltersForApi(clean);
 
@@ -68,7 +70,8 @@ export function useConferenciaNotasInfinite(filters?: NotasFilters) {
       }
       return undefined;
     },
-    refetchInterval: 30_000,
+    refetchInterval: 10_000,
+    refetchIntervalInBackground: false,
     refetchOnWindowFocus: false,
     staleTime: 30_000,
     placeholderData: (previousData) => previousData,
