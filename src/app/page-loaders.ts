@@ -1,7 +1,7 @@
 export const pageLoaders = {
   dashboard: () => import('../pages/Dashboard'), conferencia: () => import('../pages/Conferencia'), certificados: () => import('../pages/Certificados'),
   notas: () => import('../pages/NotasConsultadas'), fila: () => import('../pages/Fila'), processos: () => import('../pages/Processos'),
-  configuracoes: () => import('../pages/Configuracoes'), motorAdn: () => import('../pages/MotorAdn'),
+  configuracoes: () => import('../pages/Configuracoes'), motorAdn: () => import('../pages/MotorAdn'), admin: () => import('../pages/Admin'),
 };
 
 export function prefetchRoute(path: string) {
@@ -12,5 +12,6 @@ export function prefetchRoute(path: string) {
   if (path.startsWith('/fila')) return void pageLoaders.fila();
   if (path.startsWith('/processos')) return void pageLoaders.processos();
   if (path.startsWith('/configuracoes')) return void pageLoaders.configuracoes();
+  if (path.startsWith('/admin')) return void pageLoaders.admin();
   return void pageLoaders.dashboard();
 }

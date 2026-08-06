@@ -1,3 +1,39 @@
+export type Usuario = {
+  id: number;
+  empresa_id: number;
+  email: string;
+  nome?: string | null;
+  ativo: boolean;
+  grupo: string;
+  is_admin: boolean;
+};
+
+export type LoginRequest = { email: string; senha: string };
+
+export type LoginResponse = {
+  access_token: string;
+  token_type: 'bearer' | string;
+  expires_in_minutes?: number;
+  usuario: Usuario;
+};
+
+export type ContaCreate = {
+  nome: string;
+  email: string;
+  senha: string;
+  grupo: string;
+};
+
+export type GrupoPublico = { codigo: string; nome: string };
+
+export type FastApiValidationError = {
+  loc?: Array<string | number>;
+  msg: string;
+  type?: string;
+};
+
+export type FastApiError = { detail?: string | FastApiValidationError[] };
+
 export type Empresa = {
   id: number;
   nome: string;

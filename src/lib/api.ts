@@ -34,12 +34,17 @@ import type {
   TributoComparativoItem,
   StorageListItem,
   StorageTestResponse,
+  ContaCreate,
+  GrupoPublico,
+  LoginRequest,
+  LoginResponse,
+  Usuario,
 } from '../types/api';
 import { formatServiceCode } from './format';
-import { operatorHeaders } from './operator';
+import { authHeaders } from './auth-storage';
 
 export const API_BASE_URL = String(import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
-export const STATUS_REFRESH_MS = Number(import.meta.env.VITE_STATUS_REFRESH_MS || 5000);
+export const STATUS_REFRESH_MS = Number(import.meta.env.VITE_STATUS_REFRESH_MS || 10000);
 const REQUEST_TIMEOUT_MS = 15_000;
 const DOWNLOAD_TIMEOUT_MS = 120_000;
 const NOTAS_PAGE_SIZE = 500;
@@ -77,15 +82,24 @@ function buildUrl(path: string, params?: Record<string, string | number | boolea
   return url.toString();
 }
 
-function friendlyHttpMessage(status: number, detail?: unknown) {
+export function friendlyHttpMessage(status: number, detail?: unknown) {
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => item && typeof item === 'object' && 'msg' in item ? String(item.msg) : '')
+      .filter(Boolean);
+    if (messages.length) return messages.join(' ');
+  }
   const text = typeof detail === 'string' ? detail.toLowerCase() : JSON.stringify(detail || {}).toLowerCase();
   if (text.includes('senha')) return 'Não foi possível validar a senha do certificado. Confira a senha e tente novamente.';
   if (text.includes('cnpj')) return 'Não foi possível identificar um CNPJ no certificado. Envie um certificado válido da empresa.';
   if (text.includes('certificado') || text.includes('pfx') || text.includes('p12')) return 'O certificado enviado não parece válido. Confira o arquivo .pfx ou .p12 e tente novamente.';
   if (text.includes('cors')) return 'O navegador bloqueou a chamada ao backend por CORS. Verifique a configuração de origens permitidas na API.';
   if (text.includes('upload')) return 'Falha no upload do certificado. Tente novamente.';
-  if (status === 404) return 'Endpoint não encontrado no backend. Confira se a API local está atualizada.';
+  if (status === 400 && typeof detail === 'string' && detail.trim()) return detail;
+  if (status === 403) return 'Você não tem permissão para realizar esta ação.';
+  if (status === 404) return 'Recurso não encontrado.';
   if (status === 422) return 'Os dados enviados não foram aceitos pelo backend. Revise os campos e tente novamente.';
+  if (status === 429) return 'Muitas tentativas. Aguarde alguns minutos e tente novamente.';
   if (status >= 500) return 'O backend encontrou um erro interno. Tente novamente e confira os logs da API.';
   if (typeof detail === 'string' && detail.trim()) return detail;
   return `A API respondeu com erro ${status}.`;
@@ -104,7 +118,7 @@ async function request<T>(path: string, options?: RequestInit & { params?: Recor
       signal: controller.signal,
       headers: {
         ...(rest.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-        ...operatorHeaders(),
+        ...authHeaders(),
         ...(headers || {}),
       },
     });
@@ -127,6 +141,7 @@ async function request<T>(path: string, options?: RequestInit & { params?: Recor
       detail = undefined;
     }
     console.error('Erro HTTP na API', { url, status: response.status, detail });
+    if (response.status === 401 && path !== '/auth/login') window.dispatchEvent(new Event('portal:unauthorized'));
     throw new ApiError(friendlyHttpMessage(response.status, detail), 'http', response.status, detail);
   }
 
@@ -165,7 +180,7 @@ async function requestBlob(
       headers: {
         ...(rest.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         Accept: 'application/zip',
-        ...operatorHeaders(),
+        ...authHeaders(),
         ...(rest.headers || {}),
       },
     });
@@ -193,6 +208,7 @@ async function requestBlob(
       detail = undefined;
     }
     console.error('Erro HTTP na API', { url, status: response.status, detail });
+    if (response.status === 401) window.dispatchEvent(new Event('portal:unauthorized'));
     throw new ApiError(friendlyHttpMessage(response.status, detail), 'http', response.status, detail);
   }
 
@@ -212,7 +228,7 @@ async function requestArquivoBlob(path: string, fallbackFilename = 'arquivo'): P
       signal: controller.signal,
       headers: {
         Accept: 'application/pdf, application/xml, text/xml, */*',
-        ...operatorHeaders(),
+        ...authHeaders(),
       },
     });
   } catch (error) {
@@ -233,6 +249,7 @@ async function requestArquivoBlob(path: string, fallbackFilename = 'arquivo'): P
       detail = undefined;
     }
     console.error('Erro HTTP na API', { url, status: response.status, detail });
+    if (response.status === 401) window.dispatchEvent(new Event('portal:unauthorized'));
     throw new ApiError(friendlyHttpMessage(response.status, detail), 'http', response.status, detail);
   }
 
@@ -590,6 +607,29 @@ function normalizeConsultaStatus(status: ConsultaStatus): ConsultaStatus {
 }
 
 export const api = {
+  login: (payload: LoginRequest) =>
+    request<LoginResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  criarConta: (payload: ContaCreate) =>
+    request<LoginResponse>('/auth/criar-conta', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+  me: () => request<Usuario>('/auth/me'),
+  adminOverview: () => request<Record<string, number>>('/admin/overview'),
+  adminAcessos: (dias = 14) => request<Array<{ data: string; acessos: number; usuarios: number }>>('/admin/acessos', { params: { dias } }),
+  adminUsuarios: () => request<Array<{ id: number; nome?: string | null; email: string; grupo: string; ativo: boolean; is_admin: boolean; created_at?: string | null }>>('/admin/usuarios'),
+  adminAtualizarUsuario: (usuarioId: number, payload: { nome?: string | null; grupo?: string; ativo?: boolean; is_admin?: boolean }) => request(`/admin/usuarios/${usuarioId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  adminRedefinirSenha: (usuarioId: number, senha: string) => request<{ ok: boolean; message: string }>(`/admin/usuarios/${usuarioId}/redefinir-senha`, { method: 'POST', body: JSON.stringify({ senha }) }),
+  adminErros: (limit = 50) => request<Array<{ id: string; origem: string; processo_id?: number | null; empresa_id?: number | null; mensagem: string; created_at?: string | null }>>('/admin/erros', { params: { limit } }),
+  listarGruposPublicos: () => request<GrupoPublico[]>('/auth/grupos'),
+  adminGrupos: () => request<Array<{ id: number; codigo: string; nome: string; ativo: boolean; usuarios: number; empresas: number; created_at?: string | null }>>('/admin/grupos'),
+  adminCriarGrupo: (nome: string, codigo?: string) => request('/admin/grupos', { method: 'POST', body: JSON.stringify({ nome, codigo: codigo || undefined }) }),
+  adminEditarGrupo: (grupoId: number, payload: { nome?: string; ativo?: boolean }) => request(`/admin/grupos/${grupoId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  adminExcluirGrupo: (grupoId: number) => request<{ ok: boolean; message: string }>(`/admin/grupos/${grupoId}`, { method: 'DELETE' }),
+  adminExcluirUsuario: (usuarioId: number) => request<{ ok: boolean; message: string }>(`/admin/usuarios/${usuarioId}`, { method: 'DELETE' }),
   health: () => request<HealthStatus>('/health'),
   dbHealth: () => request<HealthStatus>('/db/health'),
   storageHealth: () => request<HealthStatus>('/storage/health'),

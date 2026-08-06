@@ -12,7 +12,7 @@ const destinations = [
   { label: 'Fila de consultas', description: 'Acompanhar o processamento atual', path: '/fila', icon: Workflow },
   { label: 'Processos com erro', description: 'Abrir o histórico operacional', path: '/processos', icon: History },
   { label: 'Cadastrar certificado', description: 'Gerenciar certificados digitais', path: '/certificados', icon: ShieldCheck },
-  { label: 'Configurações', description: 'Verificar API e armazenamento', path: '/configuracoes', icon: Settings },
+  { label: 'Manual', description: 'Aprender a usar cada área do portal', path: '/configuracoes', icon: Settings },
 ];
 
 export function CommandPalette({ open, onClose }: { open: boolean; onClose: () => void }) {

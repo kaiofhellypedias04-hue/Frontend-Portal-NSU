@@ -1,10 +1,10 @@
 import { NavLink } from 'react-router-dom';
-import { Activity, ClipboardCheck, Cpu, FileText, Gauge, ListChecks, Settings, ShieldCheck, Workflow, X } from 'lucide-react';
+import { Activity, ClipboardCheck, Cpu, FileText, Gauge, ListChecks, Settings, ShieldCheck, UserCog, Workflow, X } from 'lucide-react';
 import { classNames } from '../../lib/format';
 import { useOperatorContext } from '../../hooks/useOperator';
-import { useState } from 'react';
-import { ConfirmDialog } from '../ui/ConfirmDialog';
+import { useAuth } from '../../hooks/useAuth';
 import { prefetchRoute } from '../../app/page-loaders';
+import { ADMIN_ENABLED } from '../../lib/config';
 
 const groups = [
   { label: 'Visão geral', items: [{ to: '/dashboard', label: 'Painel principal', icon: Gauge }] },
@@ -18,15 +18,25 @@ const groups = [
     { to: '/fila', label: 'Fila de consultas', icon: Workflow },
     { to: '/processos', label: 'Histórico', icon: ListChecks },
   ] },
-  { label: 'Administração', items: [
+  { label: 'Configuração', items: [
     { to: '/certificados', label: 'Certificados', icon: ShieldCheck },
-    { to: '/configuracoes', label: 'Configurações', icon: Settings },
+    { to: '/configuracoes', label: 'Manual', icon: Settings },
   ] },
 ];
 
 export function Sidebar({ open, onClose, hidden = false, collapsed = false }: { open: boolean; onClose: () => void; hidden?: boolean; collapsed?: boolean }) {
-  const { operator, clearOperator, storageWarning } = useOperatorContext();
-  const [confirmChange, setConfirmChange] = useState(false);
+  const { operator, storageWarning } = useOperatorContext();
+  const { usuario } = useAuth();
+  const navigationGroups = ADMIN_ENABLED && usuario?.is_admin
+    ? [...groups, { label: 'Administração', items: [{ to: '/admin', label: 'Painel administrativo', icon: UserCog }] }]
+    : groups;
+  const grupoNome = usuario?.grupo === 'planning_ma'
+    ? 'Planning/MA'
+    : usuario?.grupo === 'planning_hub'
+      ? 'Planning/Hub'
+      : usuario?.grupo
+        ? usuario.grupo.replace(/_/g, ' ')
+        : 'Grupo não informado';
 
   if (hidden) return null;
 
@@ -53,17 +63,13 @@ export function Sidebar({ open, onClose, hidden = false, collapsed = false }: { 
 
         <div className={classNames('mb-4 rounded-2xl border border-borderSoft bg-panel2 p-3', collapsed ? 'lg:hidden' : '')}>
           <p className="text-xs uppercase tracking-[0.18em] text-textSoft">Operador</p>
-          <div className="mt-2 flex items-center justify-between gap-3">
-            <p className="min-w-0 truncate text-sm font-semibold text-textStrong">{operator?.operator_name || '-'}</p>
-            <button className="min-h-10 rounded-lg px-2 text-xs font-semibold text-accent hover:bg-accent/10" onClick={() => setConfirmChange(true)}>
-              Trocar
-            </button>
-          </div>
+          <p className="mt-2 min-w-0 truncate text-sm font-semibold text-textStrong">{operator?.operator_name || '-'}</p>
+          <p className="mt-1 min-w-0 truncate text-xs font-medium text-accent">{grupoNome}</p>
           {storageWarning ? <p className="mt-2 text-xs text-amber-200">Armazenamento local indisponível.</p> : null}
         </div>
 
         <nav className="space-y-5" aria-label="Navegação principal">
-          {groups.map((group) => (
+          {navigationGroups.map((group) => (
             <div key={group.label}>
               <p className={classNames('mb-1.5 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-textSoft', collapsed ? 'lg:hidden' : '')}>{group.label}</p>
               <div className="space-y-1">{group.items.map((item) => (
@@ -96,7 +102,6 @@ export function Sidebar({ open, onClose, hidden = false, collapsed = false }: { 
           <p className="mt-2 text-sm text-slate-200">O front só enxerga o painel. Fila, ciclo e certificados ficam no backend.</p>
         </div>
       </aside>
-      <ConfirmDialog open={confirmChange} title="Trocar operador?" description="O nome do operador atual será removido deste navegador e você precisará se identificar novamente." confirmLabel="Trocar operador" onClose={() => setConfirmChange(false)} onConfirm={() => { setConfirmChange(false); clearOperator(); }} />
     </>
   );
 }

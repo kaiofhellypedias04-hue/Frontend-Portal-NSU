@@ -1,4 +1,4 @@
-import { ALargeSmall, Menu, Moon, PanelLeftClose, PanelLeftOpen, RefreshCcw, Rows3, Search, Sun, Wifi, WifiOff } from 'lucide-react';
+import { ALargeSmall, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, RefreshCcw, Rows3, Search, Sun, Wifi, WifiOff } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
@@ -7,6 +7,7 @@ import { FocusModeButton } from './FocusModeButton';
 import { useTheme } from '../../hooks/useTheme';
 import { useLocation } from 'react-router-dom';
 import { useState } from 'react';
+import { useAuth } from '../../hooks/useAuth';
 
 const routeTitles: Array<[string, string]> = [
   ['/conferencia/tomados', 'Serviços tomados'],
@@ -16,7 +17,7 @@ const routeTitles: Array<[string, string]> = [
   ['/notas', 'Notas consultadas'],
   ['/fila', 'Fila de consultas'],
   ['/processos', 'Histórico de processos'],
-  ['/configuracoes', 'Configurações'],
+  ['/configuracoes', 'Manual'],
   ['/dashboard', 'Visão geral'],
 ];
 
@@ -28,6 +29,7 @@ export function Topbar({ onMenuClick, showMenuButton = true, sidebarCollapsed = 
   const pageTitle = routeTitles.find(([path]) => pathname.startsWith(path))?.[1] || 'Portal NFS-e';
   const [largeText, setLargeText] = useState(() => document.documentElement.dataset.fontSize === 'large');
   const [compactTables, setCompactTables] = useState(() => document.documentElement.dataset.tableDensity === 'compact');
+  const { usuario, logout } = useAuth();
 
   function toggleTextSize() {
     const next = !largeText;
@@ -46,6 +48,10 @@ export function Topbar({ onMenuClick, showMenuButton = true, sidebarCollapsed = 
   async function refreshOperationalData() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['notas'] }),
+      queryClient.invalidateQueries({ queryKey: ['notas-infinite'] }),
+      queryClient.invalidateQueries({ queryKey: ['notas-totals'] }),
+      queryClient.invalidateQueries({ queryKey: ['conferencia-notas'] }),
+      queryClient.invalidateQueries({ queryKey: ['conferencia-notas-infinite'] }),
       queryClient.invalidateQueries({ queryKey: ['processos'] }),
       queryClient.invalidateQueries({ queryKey: ['live-status'] }),
       queryClient.invalidateQueries({ queryKey: ['certificados'] }),
@@ -98,6 +104,9 @@ export function Topbar({ onMenuClick, showMenuButton = true, sidebarCollapsed = 
             {online ? <Wifi size={16} className="hidden sm:inline" /> : <WifiOff size={16} className="hidden sm:inline" />}
             <RefreshCcw size={15} className={apiHealth.isFetching ? 'animate-spin' : ''} />
             <span className="hidden sm:inline">Atualizar</span>
+          </Button>
+          <Button variant="ghost" className="w-11 px-0" onClick={logout} aria-label={`Sair da conta${usuario?.email ? ` de ${usuario.email}` : ''}`} title="Sair">
+            <LogOut size={19} />
           </Button>
         </div>
       </div>

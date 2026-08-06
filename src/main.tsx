@@ -7,13 +7,14 @@ import { queryClient } from './app/query-client';
 import { OperatorProvider } from './hooks/useOperator';
 import './styles.css';
 import { AppErrorBoundary } from './components/ui/AppErrorBoundary';
+import { AuthProvider } from './hooks/useAuth';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <AppErrorBoundary><QueryClientProvider client={queryClient}>
-      <OperatorProvider>
+      <AuthProvider><OperatorProvider>
         <RouterProvider router={router} />
-      </OperatorProvider>
+      </OperatorProvider></AuthProvider>
     </QueryClientProvider></AppErrorBoundary>
   </React.StrictMode>,
 );

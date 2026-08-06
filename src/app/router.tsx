@@ -2,6 +2,10 @@ import { lazy } from 'react';
 import { Navigate, createBrowserRouter } from 'react-router-dom';
 import { AppLayout } from '../components/layout/AppLayout';
 import { pageLoaders } from './page-loaders';
+import { AdminRoute, ProtectedRoute } from '../components/auth/ProtectedRoute';
+import { Login } from '../pages/Login';
+import { CriarConta } from '../pages/CriarConta';
+import { ADMIN_ENABLED } from '../lib/config';
 
 const Dashboard = lazy(() => pageLoaders.dashboard().then((m) => ({ default: m.Dashboard })));
 const Conferencia = lazy(() => pageLoaders.conferencia().then((m) => ({ default: m.Conferencia })));
@@ -11,12 +15,19 @@ const Fila = lazy(() => pageLoaders.fila().then((m) => ({ default: m.Fila })));
 const Processos = lazy(() => pageLoaders.processos().then((m) => ({ default: m.Processos })));
 const Configuracoes = lazy(() => pageLoaders.configuracoes().then((m) => ({ default: m.Configuracoes })));
 const MotorAdn = lazy(() => pageLoaders.motorAdn().then((m) => ({ default: m.MotorAdn })));
+const Admin = lazy(() => pageLoaders.admin().then((m) => ({ default: m.Admin })));
 
 export const router = createBrowserRouter([
+  { path: '/login', element: <Login /> },
+  { path: '/criar-conta', element: <CriarConta /> },
   {
-    path: '/',
-    element: <AppLayout />,
+    element: <ProtectedRoute />,
     children: [
+      ...(ADMIN_ENABLED ? [{ element: <AdminRoute />, children: [{ path: '/admin', element: <Admin /> }] }] : []),
+      {
+        path: '/',
+        element: <AppLayout />,
+        children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <Dashboard /> },
       { path: 'conferencia', element: <Navigate to="/conferencia/tomados" replace /> },
@@ -37,6 +48,8 @@ export const router = createBrowserRouter([
       { path: 'processos', element: <Processos /> },
       { path: 'configuracoes', element: <Configuracoes /> },
       { path: '*', element: <Navigate to="/dashboard" replace /> },
+        ],
+      },
     ],
   },
 ]);

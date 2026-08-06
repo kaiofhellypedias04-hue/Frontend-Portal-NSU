@@ -23,7 +23,14 @@ No `.env`:
 ```env
 VITE_API_BASE_URL=http://localhost:8000
 VITE_STATUS_REFRESH_MS=5000
+VITE_ADMIN_ENABLED=false
 ```
+
+Somente a URL pública da API e o intervalo de atualização pertencem ao frontend. Não configure `API_KEY`, `X-API-Key` ou equivalentes `VITE_*`: qualquer variável Vite é incluída no bundle do navegador. A autenticação do portal usa exclusivamente o JWT Bearer retornado por `/auth/login` ou `/auth/criar-conta`.
+
+Para testar localmente, inicie o backend em `http://localhost:8000`, copie `.env.example` para `.env`, execute `npm install` e `npm run dev`. Use `/login` para uma conta existente ou `/criar-conta` para cadastrar usuário e empresa.
+
+Em produção, configure `VITE_API_BASE_URL` com a URL HTTPS real do backend. Mantenha `VITE_ADMIN_ENABLED=false` até liberar a administração; quando ativada com `true`, ela ainda exige `usuario.is_admin === true`. Com o recurso desligado, novos cadastros usam o grupo `planning_hub` sem exibir seleção.
 
 ## Fluxo recomendado
 

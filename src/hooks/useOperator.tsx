@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   clearOperator as clearStoredOperator,
   getOperator,
@@ -6,6 +6,7 @@ import {
   saveOperator as saveStoredOperator,
   type LocalOperator,
 } from '../lib/operator';
+import { useAuth } from './useAuth';
 
 type OperatorContextValue = {
   operator: LocalOperator | null;
@@ -17,6 +18,7 @@ type OperatorContextValue = {
 const OperatorContext = createContext<OperatorContextValue | null>(null);
 
 export function OperatorProvider({ children }: { children: ReactNode }) {
+  const { usuario, loading: authLoading } = useAuth();
   const [operator, setOperator] = useState<LocalOperator | null>(() => getOperator());
   const [storageWarning, setStorageWarning] = useState(() => getStorageWarning());
 
@@ -32,6 +34,20 @@ export function OperatorProvider({ children }: { children: ReactNode }) {
     setOperator(null);
     setStorageWarning(getStorageWarning());
   }, []);
+
+  useLayoutEffect(() => {
+    if (authLoading) return;
+
+    const nomeUsuario = usuario?.nome?.replace(/\s+/g, ' ').trim();
+    if (!usuario) {
+      if (operator) clearOperator();
+      return;
+    }
+
+    if (nomeUsuario && operator?.operator_name !== nomeUsuario) {
+      saveOperator(nomeUsuario);
+    }
+  }, [authLoading, clearOperator, operator, saveOperator, usuario]);
 
   const value = useMemo(
     () => ({ operator, storageWarning, saveOperator, clearOperator }),
