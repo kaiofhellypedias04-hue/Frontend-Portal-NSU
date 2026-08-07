@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from '../lib/api';
-import { cleanClientOnlyFiltersForApi, filterNotasByPortalFilters } from '../lib/notaFilters';
+import { cleanClientOnlyFiltersForApi, dedupeNotas, filterNotasByPortalFilters } from '../lib/notaFilters';
 import type { Nota, NotasFilters } from '../types/api';
 
 function cleanCountFilters(filters?: NotasFilters): NotasFilters {
@@ -38,11 +38,12 @@ async function fetchAllNotasForSummary(filters?: NotasFilters) {
   // livre, nome do prestador) e o numero correto a exibir — o `total`
   // bruto da API não considera esses filtros que só existem no cliente.
   const response = await api.listarTodasNotas(apiFilters);
-  const notas = filterNotasByPortalFilters(response.items, clean);
+  const notas = dedupeNotas(filterNotasByPortalFilters(response.items, clean));
 
   const summary = buildSummary(notas);
   return {
     ...summary,
+    items: notas,
     complete: true,
   };
 }

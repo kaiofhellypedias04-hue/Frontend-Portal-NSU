@@ -26,7 +26,7 @@ export function NotasConsultadas() {
   const lastPage = data?.pages[data.pages.length - 1];
   const pageSize = filters.limit ?? 500;
   const canLoadMore = Boolean(hasNextPage || (lastPage?.fetched ?? 0) >= pageSize);
-  const totalNotas = Math.max(totals?.total ?? 0, lastPage?.total ?? 0, notas.length);
+  const totalNotas = totals?.total;
 
   async function loadAllNotas() {
     if (!canLoadMore) return;
@@ -50,7 +50,7 @@ export function NotasConsultadas() {
 
   return (
     <div className="min-w-0">
-      <PageHeader eyebrow="Consulta contínua" title="Notas consultadas" description="Consulte, filtre e acompanhe as notas produzidas automaticamente pelo motor." actions={<Badge value={`${totalNotas} notas consultadas`} tone="info" />} />
+      <PageHeader eyebrow="Consulta contínua" title="Notas consultadas" description="Consulte, filtre e acompanhe as notas produzidas automaticamente pelo motor." actions={<Badge value={typeof totalNotas === 'number' ? `${totalNotas} notas consultadas` : 'Calculando total...'} tone="info" />} />
       <NotasDownloadActions filters={filters} />
       <NotasFilterPanel value={filters} onChange={setFilters} />
       <NotasTable

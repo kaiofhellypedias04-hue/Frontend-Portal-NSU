@@ -5,6 +5,7 @@ import { ConferenciaFilters } from '../components/conferencia/ConferenciaFilters
 import { ConferenciaTable } from '../components/conferencia/ConferenciaTable';
 import { NotasDownloadActions } from '../components/notas/NotasDownloadActions';
 import { useConferenciaNotasInfinite } from '../hooks/useConferenciaNotas';
+import { useNotasTotals } from '../hooks/useNotasTotals';
 import { dedupeNotas } from '../lib/notaFilters';
 import type { DirecaoNota, Nota, NotasFilters, TipoNota } from '../types/api';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -62,9 +63,11 @@ export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferên
   }), [filters, fixedFilters]);
 
   const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useConferenciaNotasInfinite(effectiveFilters);
-  const notas = useMemo(() => dedupeNotas(data?.pages.flatMap((page) => page.items) ?? []), [data]);
+  const { data: totals, isLoading: isLoadingTotals, error: totalsError } = useNotasTotals(effectiveFilters);
+  const notasPaginadas = useMemo(() => dedupeNotas(data?.pages.flatMap((page) => page.items) ?? []), [data]);
+  const notas = totals?.items ?? notasPaginadas;
   const lastPage = data?.pages[data.pages.length - 1];
-  const totalNotas = lastPage?.total ?? notas.length;
+  const totalNotas = totals?.total ?? lastPage?.total ?? notas.length;
   const defaultDescricao = tipoNotaFixo === 'tomada'
     ? 'Notas de serviços tomados/recebidos pela empresa.'
     : tipoNotaFixo === 'prestada'
@@ -118,10 +121,10 @@ export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferên
       <ConferenciaFilters value={effectiveFilters} onChange={updateFilters} incidenciaOptions={incidenciaOptions} />
       <ConferenciaTable
         notas={notas}
-        isLoading={isLoading || (isFetching && notas.length === 0)}
-        error={error}
+        isLoading={isLoadingTotals || isLoading || (isFetching && notas.length === 0)}
+        error={totalsError || error}
         onOpen={setSelectedNota}
-        hasMore={Boolean(hasNextPage || (lastPage?.fetched ?? 0) >= (effectiveFilters.limit ?? 500) || summary.total > notas.length)}
+        hasMore={!totals?.complete && Boolean(hasNextPage || (lastPage?.fetched ?? 0) >= (effectiveFilters.limit ?? 500) || summary.total > notas.length)}
         isLoadingMore={isFetchingNextPage}
         onLoadMore={() => fetchNextPage()}
         totalCount={summary.total}

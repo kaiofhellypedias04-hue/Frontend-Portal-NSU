@@ -198,10 +198,8 @@ export function NotasTable({
   const [canScrollRight, setCanScrollRight] = useState(false);
   const [loadMenuOpen, setLoadMenuOpen] = useState(false);
   const canLoadAll = Boolean(hasMore || (typeof totalCount === 'number' && totalCount > notas.length));
-  const totalLabel = hasMore && (!totalCount || totalCount <= notas.length || totalCount <= 500)
-    ? `${notas.length}+ notas no total`
-    : `${totalCount ?? notas.length} notas no total`;
-  const loadedLabel = hasMore || (typeof totalCount === 'number' && totalCount !== notas.length) ? `${notas.length} carregadas` : null;
+  const totalLabel = typeof totalCount === 'number' ? `${totalCount} notas no total` : 'Calculando total...';
+  const loadedLabel = `${notas.length} carregadas`;
 
   useEffect(() => {
     const element = scrollRef.current;
@@ -243,7 +241,7 @@ export function NotasTable({
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Badge value={totalLabel} tone="info" />
-          {loadedLabel ? (
+          {canLoadAll ? (
             <div className="relative">
               <button
                 type="button"
@@ -270,7 +268,7 @@ export function NotasTable({
                 </div>
               ) : null}
             </div>
-          ) : null}
+          ) : <Badge value={loadedLabel} tone="warning" />}
           {isLoading ? <Loader2 className="animate-spin text-sky-300" size={18} /> : null}
         </div>
       </div>
