@@ -20,7 +20,6 @@ function resultMessage(autoIniciar: boolean, processoId?: number | null, automat
 export function CertificadoUploadForm() {
   const autocadastrar = useAutocadastrarCertificado();
   const [senha, setSenha] = useState('');
-  const [ambiente, setAmbiente] = useState<'producao' | 'homologacao'>('producao');
   const [autoIniciar, setAutoIniciar] = useState(true);
   const [limite, setLimite] = useState('100');
   const [nsuInicio, setNsuInicio] = useState('');
@@ -37,7 +36,6 @@ export function CertificadoUploadForm() {
     const formData = new FormData();
     formData.append('arquivo', file);
     formData.append('senha', senha);
-    formData.append('ambiente', ambiente);
     formData.append('auto_iniciar', String(autoIniciar));
     formData.append('limite', limite.trim() || '100');
     if (nsuInicio.trim()) {
@@ -73,14 +71,6 @@ export function CertificadoUploadForm() {
         <label>
           <span className="label">Senha</span>
           <input className="field" type="password" value={senha} onChange={(event) => setSenha(event.target.value)} placeholder="Senha do certificado" required autoComplete="off" />
-        </label>
-
-        <label>
-          <span className="label">Ambiente</span>
-          <select className="field" value={ambiente} onChange={(event) => setAmbiente(event.target.value as 'producao' | 'homologacao')}>
-            <option value="producao">Producao</option>
-            <option value="homologacao">Homologacao</option>
-          </select>
         </label>
 
         <label>

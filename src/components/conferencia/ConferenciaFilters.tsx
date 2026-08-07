@@ -103,7 +103,7 @@ export function ConferenciaFilters({
   }
 
   function clear() {
-    const clean: NotasFilters = { limit: 500, offset: 0, sort: 'recentes' };
+    const clean: NotasFilters = { limit: 500, offset: 0, sort: 'emissao' };
     setDraft(clean);
     onChange(clean);
   }

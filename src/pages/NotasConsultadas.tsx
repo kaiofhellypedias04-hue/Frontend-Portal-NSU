@@ -15,12 +15,12 @@ import { useEffect } from 'react';
 
 export function NotasConsultadas() {
   const [searchParams] = useSearchParams();
-  const [filters, setFilters] = usePersistentState<NotasFilters>('filters:notas', { limit: 500, offset: 0, busca: searchParams.get('busca') || undefined });
+  const [filters, setFilters] = usePersistentState<NotasFilters>('filters:notas:v2', { limit: 500, offset: 0, sort: 'emissao', busca: searchParams.get('busca') || undefined });
   useRestoreScroll('notas');
   useEffect(() => { const busca = searchParams.get('busca'); if (busca) setFilters((current) => ({ ...current, busca, offset: 0 })); }, [searchParams, setFilters]);
   const [selectedNota, setSelectedNota] = useState<Nota | null>(null);
   const [isLoadingAllNotas, setIsLoadingAllNotas] = useState(false);
-  const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotasInfinite(filters, 10_000);
+  const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotasInfinite(filters, 5_000);
   const { data: totals } = useNotasTotals(filters);
   const notas = useMemo(() => dedupeNotas(data?.pages.flatMap((page) => page.items) ?? []), [data]);
   const lastPage = data?.pages[data.pages.length - 1];

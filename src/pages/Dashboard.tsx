@@ -14,11 +14,11 @@ import { usePersistentState, useRestoreScroll } from '../hooks/usePersistentStat
 import { QuickTasks } from '../components/dashboard/QuickTasks';
 
 export function Dashboard() {
-  const [filters, setFilters] = usePersistentState<NotasFilters>('filters:dashboard', { limit: 500, offset: 0 });
+  const [filters, setFilters] = usePersistentState<NotasFilters>('filters:dashboard:v2', { limit: 500, offset: 0, sort: 'emissao' });
   useRestoreScroll('dashboard');
   const [selectedNota, setSelectedNota] = useState<Nota | null>(null);
   const [isLoadingAllNotas, setIsLoadingAllNotas] = useState(false);
-  const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotasInfinite(filters, 10_000);
+  const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotasInfinite(filters, 5_000);
   const { data: totals } = useNotasTotals(filters);
   const notas = useMemo(() => dedupeNotas(data?.pages.flatMap((page) => page.items) ?? []), [data]);
   const lastPage = data?.pages[data.pages.length - 1];

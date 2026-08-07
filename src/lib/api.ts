@@ -367,7 +367,7 @@ async function downloadNotasLoteComFallback(filters: NotasFilters | undefined, o
 
 function buildNotasListParams(filters?: NotasFilters) {
   return {
-    sort: filters?.sort || 'recentes',
+    sort: filters?.sort || 'emissao',
     limit: filters?.limit ?? 500,
     offset: filters?.offset ?? 0,
     empresa_id: filters?.empresa_id || undefined,

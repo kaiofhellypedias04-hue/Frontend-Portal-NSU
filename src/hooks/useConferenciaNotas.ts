@@ -30,10 +30,10 @@ export function useConferenciaNotas(filters?: NotasFilters) {
         items: dedupeNotas(filterNotasByPortalFilters(response.items, clean)),
       };
     },
-    refetchInterval: 10_000,
+    refetchInterval: 5_000,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
-    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    staleTime: 3_000,
     placeholderData: (previousData) => previousData,
   });
 }
@@ -70,10 +70,10 @@ export function useConferenciaNotasInfinite(filters?: NotasFilters) {
       }
       return undefined;
     },
-    refetchInterval: 10_000,
+    refetchInterval: 5_000,
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: false,
-    staleTime: 30_000,
+    refetchOnWindowFocus: true,
+    staleTime: 3_000,
     placeholderData: (previousData) => previousData,
   });
 }

@@ -17,7 +17,7 @@ type ConferenciaProps = {
   descricao?: string;
 };
 
-const DEFAULT_FILTERS: NotasFilters = { limit: 500, offset: 0, sort: 'recentes' };
+const DEFAULT_FILTERS: NotasFilters = { limit: 500, offset: 0, sort: 'emissao' };
 
 function SummaryCard({ label, value, icon: Icon, tone }: { label: string; value: number; icon: typeof Clock; tone: string }) {
   return (
@@ -46,7 +46,7 @@ function countBy(notas: Nota[], predicate: (nota: Nota) => boolean) {
 
 export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferência de Notas', descricao }: ConferenciaProps) {
   const persistenceKey = tipoNotaFixo === 'tomada' ? 'conferencia:tomados' : tipoNotaFixo === 'prestada' ? 'conferencia:prestados' : 'conferencia';
-  const [filters, setFilters] = usePersistentState<NotasFilters>(`filters:${persistenceKey}`, DEFAULT_FILTERS);
+  const [filters, setFilters] = usePersistentState<NotasFilters>(`filters:${persistenceKey}:v2`, DEFAULT_FILTERS);
   useRestoreScroll(persistenceKey);
   const [selectedNota, setSelectedNota] = useState<Nota | null>(null);
   const fixedFilters = useMemo<NotasFilters>(() => ({
