@@ -20,11 +20,10 @@ export function useLiveStatus() {
   const query = useQuery({
     queryKey: ['live-status'],
     queryFn: async () => {
-      const [status, certificados, processos, notas] = await Promise.all([
+      const [status, certificados, processos] = await Promise.all([
         api.consultasStatus(),
         api.listarCertificados({ ativo: true }),
         api.listarProcessos({ limit: 100, offset: 0 }),
-        api.listarNotas({ limit: 100, offset: 0 }),
       ]);
 
       const finalizados = processos.filter((p) => p.status === 'finalizado');
@@ -32,12 +31,6 @@ export function useLiveStatus() {
         .slice()
         .sort((a, b) => new Date(b.finished_at || b.updated_at || b.created_at || '').getTime() - new Date(a.finished_at || a.updated_at || a.created_at || '').getTime())[0];
       const empresaAtualId = status.processos_rodando[0]?.empresa_id || status.processos_pendentes[0]?.empresa_id || null;
-      const lastNotaDate = notas
-        .map((n) => n.importado_em || n.updated_at || n.created_at)
-        .filter(Boolean)
-        .sort()
-        .reverse()[0];
-
       return {
         consultando: status.consultando,
         automaticoAtivo: status.automatico_ativo,
@@ -53,11 +46,9 @@ export function useLiveStatus() {
         processosErro: status.totais.erros,
         processosFinalizados: status.totais.finalizados,
         processosCancelados: status.totais.cancelados,
-        notasRecentes: notas.length,
         ultimoCicloFim: ultimoFinalizado?.finished_at || ultimoFinalizado?.updated_at || null,
         proximoCicloEmSegundos: status.consultando ? 0 : nextCycleFromLastFinished(ultimoFinalizado?.finished_at || ultimoFinalizado?.updated_at),
         empresaAtualId,
-        ultimaNotaAtualizadaEm: lastNotaDate || null,
         processosRodandoLista: status.processos_rodando,
         processosPendentesLista: status.processos_pendentes,
         fonte: 'consultas-status',
@@ -75,13 +66,10 @@ export function useLiveStatus() {
       query.data.processosFinalizados,
       query.data.processosErro,
       query.data.processosCancelados,
-      query.data.notasRecentes,
       query.data.ultimoCicloFim,
-      query.data.ultimaNotaAtualizadaEm,
     ].join(':');
     if (previousCounters.current !== null && previousCounters.current !== counters) {
       queryClient.invalidateQueries({ queryKey: ['notas'] });
-      queryClient.invalidateQueries({ queryKey: ['notas-infinite'] });
       queryClient.invalidateQueries({ queryKey: ['notas-totals'] });
       queryClient.invalidateQueries({ queryKey: ['conferencia-notas'] });
       queryClient.invalidateQueries({ queryKey: ['conferencia-notas-infinite'] });
@@ -101,9 +89,7 @@ export function useLiveStatus() {
     query.data?.processosFinalizados,
     query.data?.processosErro,
     query.data?.processosCancelados,
-    query.data?.notasRecentes,
     query.data?.ultimoCicloFim,
-    query.data?.ultimaNotaAtualizadaEm,
     queryClient,
   ]);
 

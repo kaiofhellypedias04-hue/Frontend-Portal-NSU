@@ -5,7 +5,7 @@ import { NotasDownloadActions } from '../components/notas/NotasDownloadActions';
 import { NotasFilterPanel } from '../components/notas/NotasFilterPanel';
 import { NotasTable } from '../components/notas/NotasTable';
 import { NotaDrawer } from '../components/notas/NotaDrawer';
-import { useNotasInfinite } from '../hooks/useNotas';
+import { sortNotas, useNotasInfinite } from '../hooks/useNotas';
 import { useNotasTotals } from '../hooks/useNotasTotals';
 import { dedupeNotas } from '../lib/notaFilters';
 import type { Nota, NotasFilters } from '../types/api';
@@ -14,31 +14,29 @@ import { usePersistentState, useRestoreScroll } from '../hooks/usePersistentStat
 import { QuickTasks } from '../components/dashboard/QuickTasks';
 
 export function Dashboard() {
-  const [filters, setFilters] = usePersistentState<NotasFilters>('filters:dashboard:v2', { limit: 500, offset: 0, sort: 'emissao' });
+  const [filters, setFilters] = usePersistentState<NotasFilters>('filters:dashboard:v4', { limit: 100, offset: 0, sort: 'recentes' });
   useRestoreScroll('dashboard');
   const [selectedNota, setSelectedNota] = useState<Nota | null>(null);
   const [isLoadingAllNotas, setIsLoadingAllNotas] = useState(false);
-  const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotasInfinite(filters, 5_000);
-  const { data: totals } = useNotasTotals(filters);
-  const notas = useMemo(() => dedupeNotas(data?.pages.flatMap((page) => page.items) ?? []), [data]);
-  const lastPage = data?.pages[data.pages.length - 1];
-  const pageSize = filters.limit ?? 500;
-  const canLoadMore = Boolean(hasNextPage || (lastPage?.fetched ?? 0) >= pageSize);
-  const totalNotas = Math.max(totals?.total ?? 0, lastPage?.total ?? 0, notas.length);
+  const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useNotasInfinite(filters, 2_000);
+  // O selo do painel representa todo o acervo baixado, independentemente dos
+  // filtros aplicados somente a tabela.
+  const { data: totals } = useNotasTotals(undefined, false);
+  const notas = useMemo(
+    () => sortNotas(dedupeNotas(data?.pages.flatMap((page) => page.items) ?? []), filters.sort ?? 'recentes'),
+    [data, filters.sort],
+  );
+  const canLoadMore = Boolean(hasNextPage && (typeof totals?.total !== 'number' || notas.length < totals.total));
+  const totalNotas = totals?.total;
 
   async function loadAllNotas() {
     if (!canLoadMore) return;
     setIsLoadingAllNotas(true);
     try {
-      let loaded = notas.length;
       let canContinue: boolean = canLoadMore;
 
       while (canContinue) {
         const result = await fetchNextPage();
-        const pages = result.data?.pages ?? [];
-        const nextLoaded = dedupeNotas(pages.flatMap((page) => page.items)).length;
-        if (nextLoaded <= loaded) break;
-        loaded = nextLoaded;
         canContinue = Boolean(result.hasNextPage);
       }
     } finally {

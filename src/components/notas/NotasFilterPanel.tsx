@@ -14,6 +14,12 @@ const STATUS_LABELS: Record<string, string> = {
   substituida: 'Substituída',
 };
 
+const DEFAULT_NOTAS_FILTERS: NotasFilters = { limit: 100, offset: 0, sort: 'recentes' };
+
+function normalizeNotasFilters(filters: NotasFilters): NotasFilters {
+  return { ...filters, limit: 100, offset: 0, sort: 'recentes' };
+}
+
 export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onChange: (filters: NotasFilters) => void }) {
   const [open, setOpen] = useState(true);
   const [draft, setDraft] = useState<NotasFilters>(value);
@@ -48,11 +54,11 @@ export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onC
 
   function apply(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onChange({ ...draft, limit: 500, offset: 0 });
+    onChange(normalizeNotasFilters(draft));
   }
 
   function clear() {
-    const clean = { limit: 500, offset: 0 };
+    const clean = DEFAULT_NOTAS_FILTERS;
     setDraft(clean);
     onChange(clean);
   }
@@ -73,7 +79,7 @@ export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onC
         </div>
       </div>
       <FilterChips chips={chips} onRemove={removeFilter} />
-      <div className="border-b border-borderSoft px-4 py-3"><SavedViews storageKey="views:notas" value={value} onApply={(saved) => { setDraft(saved); onChange(saved); }} /></div>
+      <div className="border-b border-borderSoft px-4 py-3"><SavedViews storageKey="views:notas:v2" value={value} onApply={(saved) => { const normalized = normalizeNotasFilters(saved); setDraft(normalized); onChange(normalized); }} /></div>
       {chips.length > 0 ? (
         <div className="border-b border-amber-400/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-200">
           Filtros ativos podem ocultar notas recém-importadas. Limpe os filtros para ver tudo em ordem de importação.

@@ -367,7 +367,7 @@ async function downloadNotasLoteComFallback(filters: NotasFilters | undefined, o
 
 function buildNotasListParams(filters?: NotasFilters) {
   return {
-    sort: filters?.sort || 'emissao',
+    sort: filters?.sort || 'recentes',
     limit: filters?.limit ?? 500,
     offset: filters?.offset ?? 0,
     empresa_id: filters?.empresa_id || undefined,
@@ -721,6 +721,10 @@ export const api = {
   listarTodasNotas: (filters?: NotasFilters) => {
     const { limit: _limit, offset: _offset, ...params } = buildNotasListParams(filters);
     return request<ConferenciaNotasResponse>('/notas/todas', { params }).then(normalizeNotasResponse);
+  },
+  contarNotas: (filters?: NotasFilters) => {
+    const { limit: _limit, offset: _offset, ...params } = buildNotasListParams(filters);
+    return request<ConferenciaNotasResponse>('/notas/todas', { params: { ...params, somente_total: true } }).then(normalizeNotasResponse);
   },
   salvarConferenciaNota: (notaId: number, payload: ConferenciaPayload) =>
     request<Nota>(`/notas/${notaId}/conferencia`, { method: 'PATCH', body: JSON.stringify(payload) }).then(normalizeNota),

@@ -27,7 +27,7 @@ function buildSummary(notas: Nota[]) {
   };
 }
 
-async function fetchAllNotasForSummary(filters?: NotasFilters) {
+async function fetchAllNotasForSummary(filters?: NotasFilters, includeItems = true) {
   const clean = cleanCountFilters(filters);
   const apiFilters = cleanClientOnlyFiltersForApi(clean);
   // `/notas/todas` busca tudo no backend (em lotes internos) e devolve o
@@ -37,7 +37,21 @@ async function fetchAllNotasForSummary(filters?: NotasFilters) {
   // completo, `summary.total` (apos os filtros client-only, ex.: busca
   // livre, nome do prestador) e o numero correto a exibir — o `total`
   // bruto da API não considera esses filtros que só existem no cliente.
-  const response = await api.listarTodasNotas(apiFilters);
+  const response = includeItems
+    ? await api.listarTodasNotas(apiFilters)
+    : await api.contarNotas(apiFilters);
+  if (!includeItems) {
+    return {
+      total: response.total ?? 0,
+      pendentes: 0,
+      ok: 0,
+      corrigir: 0,
+      observacao: 0,
+      slaVencido: 0,
+      items: [] as Nota[],
+      complete: true,
+    };
+  }
   const notas = dedupeNotas(filterNotasByPortalFilters(response.items, clean));
 
   const summary = buildSummary(notas);
@@ -48,13 +62,13 @@ async function fetchAllNotasForSummary(filters?: NotasFilters) {
   };
 }
 
-export function useNotasTotals(filters?: NotasFilters) {
+export function useNotasTotals(filters?: NotasFilters, includeItems = true) {
   const clean = cleanCountFilters(filters);
 
   return useQuery({
-    queryKey: ['notas-totals', clean],
-    queryFn: () => fetchAllNotasForSummary(clean),
-    refetchInterval: 60_000,
+    queryKey: ['notas-totals', clean, { includeItems }],
+    queryFn: () => fetchAllNotasForSummary(clean, includeItems),
+    refetchInterval: includeItems ? 60_000 : 30_000,
     refetchIntervalInBackground: false,
     staleTime: 30_000,
     refetchOnWindowFocus: false,

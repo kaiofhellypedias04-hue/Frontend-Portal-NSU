@@ -1,7 +1,6 @@
 import { Activity, Clock3, DatabaseZap, Radio } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { useLiveStatus } from '../../hooks/useLiveStatus';
-import { formatDateTime } from '../../lib/format';
 import { StartConsultasButton } from './StartConsultasButton';
 
 function formatSeconds(seconds?: number | null) {
@@ -43,7 +42,6 @@ export function LiveStatusBar() {
             {data?.consultando ? 'Fluxo real ativo' : 'Próximo ciclo'}: <strong className="text-white">{formatSeconds(data?.proximoCicloEmSegundos)}</strong>
           </span>
           <span>{isLoading ? 'Carregando status...' : statusMessage}</span>
-          <span>Última nota: {formatDateTime(data?.ultimaNotaAtualizadaEm)}</span>
         </div>
         <StartConsultasButton automaticoAtivo={data?.automaticoAtivo} disabled={isLoading} />
       </div>
