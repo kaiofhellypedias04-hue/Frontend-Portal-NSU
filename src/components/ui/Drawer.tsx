@@ -5,6 +5,8 @@ import { Button } from './Button';
 
 export function Drawer({ open, title, onClose, children }: { open: boolean; title: string; onClose: () => void; children: ReactNode }) {
   const panelRef = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -16,7 +18,7 @@ export function Drawer({ open, title, onClose, children }: { open: boolean; titl
     panelRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') onCloseRef.current();
     };
     window.addEventListener('keydown', onKeyDown);
 
@@ -25,7 +27,7 @@ export function Drawer({ open, title, onClose, children }: { open: boolean; titl
       window.removeEventListener('keydown', onKeyDown);
       previousFocus?.focus?.();
     };
-  }, [open, onClose]);
+  }, [open]);
 
   if (!open) return null;
   return (

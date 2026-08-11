@@ -1,5 +1,5 @@
 import { Download, ExternalLink, FileCode2, FileText, Loader2, Save } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -224,17 +224,6 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
   const xml = useMemo(() => arquivos.find((arquivo) => fileKind(arquivo) === 'xml'), [arquivos]);
   const pdf = useMemo(() => arquivos.find((arquivo) => fileKind(arquivo) === 'pdf'), [arquivos]);
   const outros = useMemo(() => arquivos.filter((arquivo) => fileKind(arquivo) === 'outro'), [arquivos]);
-
-  useEffect(() => {
-    setStatus(nota.conferencia_status || 'pendente');
-    setObservacao(nota.observacao || nota.conferencia_observacao || '');
-    setObservacaoInterna(nota.observacao_interna || '');
-    setPrioridade(nota.prioridade_fila || nota.prioridade || prioridadeManualValue(nota.prioridade_manual) || '');
-    setPrioridadeManual(Boolean(nota.prioridade_manual));
-    setResponsavel(nota.responsavel || operator?.operator_name || '');
-    setValorLiquidoCorreto(nota.valor_liquido_correto === null || nota.valor_liquido_correto === undefined ? '' : String(nota.valor_liquido_correto));
-    setAlertasFiscais(Array.isArray(nota.alertas_fiscais) ? nota.alertas_fiscais.join('\n') : nota.alertas_fiscais || '');
-  }, [nota.id, nota.conferencia_status, nota.conferencia_observacao, nota.observacao, nota.observacao_interna, nota.prioridade_fila, nota.prioridade, nota.prioridade_manual, nota.responsavel, nota.valor_liquido_correto, nota.alertas_fiscais, operator?.operator_name]);
 
   function save() {
     salvar.mutate({

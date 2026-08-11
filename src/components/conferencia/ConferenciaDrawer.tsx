@@ -18,7 +18,7 @@ export function ConferenciaDrawer({ nota, onClose }: { nota: Nota | null; onClos
     enabled: open,
     placeholderData: (previousData) => previousData,
   });
-  const currentNota = notaDetalhada || nota;
+  const currentNota = notaDetalhada || (error ? nota : null);
 
   return (
     <Drawer open={open} title={`NFS-e ${currentNota ? notaNumero(currentNota) : ''}`} onClose={onClose}>
@@ -34,7 +34,7 @@ export function ConferenciaDrawer({ nota, onClose }: { nota: Nota | null; onClos
               Nao foi possivel atualizar os detalhes agora. Mostrando dados da tabela.
             </div>
           ) : null}
-          <NotaDetailSections nota={currentNota} />
+          <NotaDetailSections key={currentNota.id} nota={currentNota} />
         </div>
       ) : null}
     </Drawer>
