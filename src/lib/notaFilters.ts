@@ -33,6 +33,14 @@ function fieldIncludes(value: string | number | null | undefined, term?: string)
   return normalize(value).includes(normalizedTerm);
 }
 
+function normalizeIncidenciaTerm(value?: string | number | null) {
+  return String(value ?? '')
+    .trim()
+    .replace(/[,/\-]+/g, ' ')
+    .replace(/\s+[a-zA-Z]{2}$/i, '')
+    .trim();
+}
+
 function digitsInclude(value: string | number | null | undefined, term?: string) {
   const digitsTerm = onlyDigits(String(term || ''));
   if (!digitsTerm) return true;
@@ -61,7 +69,7 @@ function matchesSimpleStatus(nota: Nota, value?: string) {
 export function notaMatchesPortalFilters(nota: Nota, filters?: NotasFilters) {
   if (!filters) return true;
   if (!notaMatchesSmartSearch(nota, filters.busca)) return false;
-  if (!fieldIncludes(nota.incidencia_iss, filters.incidencia_iss)) return false;
+  if (!fieldIncludes(nota.incidencia_iss, normalizeIncidenciaTerm(filters.incidencia_iss))) return false;
   if (!fieldIncludes(nota.prestador_nome, filters.prestador_nome)) return false;
   if (!digitsInclude(nota.prestador_cnpj ?? nota.cnpj_prestador, filters.prestador_cnpj)) return false;
   if (!digitsInclude(nota.tomador_cnpj ?? nota.cnpj_tomador, filters.tomador_cnpj)) return false;
@@ -102,7 +110,7 @@ export function cleanClientOnlyFiltersForApi(filters?: NotasFilters): NotasFilte
   return {
     ...filters,
     busca: undefined,
-    incidencia_iss: undefined,
+    incidencia_iss: normalizeIncidenciaTerm(filters?.incidencia_iss) || undefined,
     prestador_nome: undefined,
     prestador_cnpj: prestadorDigits.length === 14 ? prestadorDigits : undefined,
     tomador_cnpj: tomadorDigits.length === 14 ? tomadorDigits : undefined,

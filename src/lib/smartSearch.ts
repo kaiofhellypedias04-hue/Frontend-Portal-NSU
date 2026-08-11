@@ -11,6 +11,8 @@ const COMMAND_ALIASES: Record<string, Array<keyof Nota>> = {
   status: ['status', 'status_documento', 'status_nota', 'status_rotulo', 'conferencia_status', 'divergencia'],
   responsavel: ['responsavel', 'conferencia_por'],
   prioridade: ['prioridade'],
+  incidencia: ['incidencia_iss', 'municipio', 'municipio_prestacao'],
+  municipio: ['incidencia_iss', 'municipio', 'municipio_prestacao'],
 };
 
 function normalize(value: unknown) {
@@ -47,6 +49,9 @@ function notaHaystack(nota: Nota) {
       nota.conferencia_por,
       nota.prioridade,
       nota.divergencia,
+      nota.incidencia_iss,
+      nota.municipio,
+      nota.municipio_prestacao,
       nota.conferencia_observacao,
     ].join(' '),
   );
