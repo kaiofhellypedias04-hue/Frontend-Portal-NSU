@@ -64,7 +64,7 @@ export function Dashboard() {
         isLoadingAll={isLoadingAllNotas}
         totalCount={totalNotas}
       />
-      <NotaDrawer nota={selectedNota} onClose={() => setSelectedNota(null)} />
+      <NotaDrawer nota={selectedNota} notas={notas} onSelectNota={setSelectedNota} onClose={() => setSelectedNota(null)} />
     </div>
   );
 }

@@ -130,7 +130,7 @@ export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferên
         totalCount={summary.total}
         emptyDescription={emptyDescription}
       />
-      <ConferenciaDrawer nota={selectedNota} onClose={() => setSelectedNota(null)} />
+      <ConferenciaDrawer nota={selectedNota} notas={notas} onSelectNota={setSelectedNota} onClose={() => setSelectedNota(null)} />
     </div>
   );
 }

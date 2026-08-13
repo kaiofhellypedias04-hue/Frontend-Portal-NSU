@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react';
+import { ArrowRight, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Drawer } from '../ui/Drawer';
 import { api } from '../../lib/api';
@@ -6,7 +6,7 @@ import type { Nota } from '../../types/api';
 import { notaNumero } from './conferenciaUtils';
 import { NotaDetailSections } from '../notas/NotaDetailSections';
 
-export function ConferenciaDrawer({ nota, onClose }: { nota: Nota | null; onClose: () => void }) {
+export function ConferenciaDrawer({ nota, notas = [], onSelectNota, onClose }: { nota: Nota | null; notas?: Nota[]; onSelectNota?: (nota: Nota) => void; onClose: () => void }) {
   const open = Boolean(nota);
   const {
     data: notaDetalhada,
@@ -19,9 +19,15 @@ export function ConferenciaDrawer({ nota, onClose }: { nota: Nota | null; onClos
     placeholderData: (previousData) => previousData,
   });
   const currentNota = notaDetalhada || (error ? nota : null);
+  const currentIndex = nota ? notas.findIndex((item) => item.id === nota.id) : -1;
+  const nextNota = currentIndex >= 0 ? notas[currentIndex + 1] : undefined;
 
   return (
-    <Drawer open={open} title={`NFS-e ${currentNota ? notaNumero(currentNota) : ''}`} onClose={onClose} expandable>
+    <Drawer open={open} title={`NFS-e ${currentNota ? notaNumero(currentNota) : ''}`} onClose={onClose} expandable actions={onSelectNota ? (
+      <button type="button" disabled={!nextNota} onClick={() => nextNota && onSelectNota(nextNota)} className="mr-1 flex items-center gap-2 rounded-lg border border-borderSoft px-3 py-2 text-sm font-semibold text-slate-200 transition hover:border-accent/60 hover:bg-accent/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40 sm:mr-2" aria-label="Passar para a próxima nota" title="Passar para a próxima nota">
+        <span className="hidden md:inline">Passar para a próxima nota</span><ArrowRight size={17} />
+      </button>
+    ) : null}>
       {currentNota ? (
         <div className="space-y-5">
           {isLoading ? (

@@ -9,6 +9,7 @@ type DrawerProps = {
   onClose: () => void;
   children: ReactNode;
   expandable?: boolean;
+  actions?: ReactNode;
 };
 
 const DrawerExpandedContext = createContext(false);
@@ -17,7 +18,7 @@ export function useDrawerExpanded() {
   return useContext(DrawerExpandedContext);
 }
 
-export function Drawer({ open, title, onClose, children, expandable = false }: DrawerProps) {
+export function Drawer({ open, title, onClose, children, expandable = false, actions }: DrawerProps) {
   const panelRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   const [expanded, setExpanded] = useState(false);
@@ -65,6 +66,7 @@ export function Drawer({ open, title, onClose, children, expandable = false }: D
         <div className="mb-6 flex items-center justify-between gap-3">
           <h2 className="min-w-0 truncate text-xl font-bold text-white">{title}</h2>
           <div className="flex shrink-0 items-center gap-1">
+            {actions}
             {expandable ? (
               <Button
                 variant="ghost"

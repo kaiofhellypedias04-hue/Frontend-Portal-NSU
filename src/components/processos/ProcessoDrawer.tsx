@@ -279,7 +279,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
               ) : null}
             </section>
           ) : null}
-          <NotaDrawer nota={selectedNota} onClose={() => setSelectedNota(null)} />
+          <NotaDrawer nota={selectedNota} notas={notasQuery.data || []} onSelectNota={setSelectedNota} onClose={() => setSelectedNota(null)} />
         </div>
       ) : null}
     </Drawer>
