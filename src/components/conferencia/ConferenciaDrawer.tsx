@@ -21,7 +21,7 @@ export function ConferenciaDrawer({ nota, onClose }: { nota: Nota | null; onClos
   const currentNota = notaDetalhada || (error ? nota : null);
 
   return (
-    <Drawer open={open} title={`NFS-e ${currentNota ? notaNumero(currentNota) : ''}`} onClose={onClose}>
+    <Drawer open={open} title={`NFS-e ${currentNota ? notaNumero(currentNota) : ''}`} onClose={onClose} expandable>
       {currentNota ? (
         <div className="space-y-5">
           {isLoading ? (

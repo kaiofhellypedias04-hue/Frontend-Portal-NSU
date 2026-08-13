@@ -1,8 +1,9 @@
-import { Download, ExternalLink, FileCode2, FileText, Loader2, Save } from 'lucide-react';
+import { Calculator, ClipboardCheck, Download, ExternalLink, FileCode2, FileText, Files, LayoutDashboard, Loader2, Save } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { useDrawerExpanded } from '../ui/Drawer';
 import { api } from '../../lib/api';
 import { formatCnpj, formatCurrency, formatDate, formatDateTime, formatServiceCode } from '../../lib/format';
 import { useSalvarConferenciaNota } from '../../hooks/useConferenciaNotas';
@@ -26,9 +27,9 @@ function prioridadeManualValue(value?: string | boolean | null) {
 
 function Row({ label, value }: { label: string; value?: string | number | null }) {
   return (
-    <div className="rounded-xl border border-borderSoft bg-slate-950/30 p-3">
+    <div className="rounded-xl border border-borderSoft bg-slate-950/30 p-2.5">
       <p className="text-xs uppercase tracking-[0.16em] text-textSoft">{label}</p>
-      <p className="mt-1 break-words text-sm font-medium text-slate-100">{displayValue(value)}</p>
+      <p className="mt-0.5 break-words text-sm font-medium leading-snug text-slate-100">{displayValue(value)}</p>
     </div>
   );
 }
@@ -97,6 +98,7 @@ function saveBlob(blob: Blob, filename: string) {
 }
 
 function DocumentCard({ kind, arquivo, nota }: { kind: 'xml' | 'pdf' | 'outro'; arquivo?: Arquivo; nota: Nota }) {
+  const expanded = useDrawerExpanded();
   const [action, setAction] = useState<'view' | 'download' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const Icon = kind === 'xml' ? FileCode2 : FileText;
@@ -144,7 +146,7 @@ function DocumentCard({ kind, arquivo, nota }: { kind: 'xml' | 'pdf' | 'outro'; 
   }
 
   return (
-    <div className="rounded-xl border border-borderSoft bg-slate-950/30 p-4">
+    <div className={`rounded-xl border border-borderSoft bg-slate-950/30 ${expanded ? 'p-3' : 'p-4'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky-500/10 text-sky-300">
@@ -158,7 +160,7 @@ function DocumentCard({ kind, arquivo, nota }: { kind: 'xml' | 'pdf' | 'outro'; 
         </div>
         <Badge value={available ? 'Disponivel' : 'Indisponivel'} tone={available ? 'success' : 'warning'} />
       </div>
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className={`${expanded ? 'mt-3' : 'mt-4'} flex flex-wrap gap-2`}>
         {available ? (
           <>
             <Button variant="secondary" className="px-3" onClick={viewArquivo} disabled={action !== null}>
@@ -194,6 +196,8 @@ function normalizeTributo(item: NotaTributoComparativo) {
 }
 
 export function NotaDetailSections({ nota }: { nota: Nota }) {
+  const expanded = useDrawerExpanded();
+  const [expandedTab, setExpandedTab] = useState<'visao' | 'fiscal' | 'conferencia' | 'arquivos'>('visao');
   const [status, setStatus] = useState(nota.conferencia_status || 'pendente');
   const [observacao, setObservacao] = useState(nota.observacao || nota.conferencia_observacao || '');
   const [observacaoInterna, setObservacaoInterna] = useState(nota.observacao_interna || '');
@@ -243,17 +247,49 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
     });
   }
 
+  const sectionClass = (position = '') =>
+    `rounded-2xl border border-borderSoft bg-slate-950/20 p-4 ${expanded ? `min-h-0 overflow-auto lg:p-6 ${position}` : ''}`;
+
+  const tabs = [
+    { id: 'visao', label: 'Visao geral', icon: LayoutDashboard },
+    { id: 'fiscal', label: 'Fiscal e tributos', icon: Calculator },
+    { id: 'conferencia', label: 'Conferencia', icon: ClipboardCheck },
+    { id: 'arquivos', label: 'Arquivos e eventos', icon: Files },
+  ] as const;
+
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-center gap-2">
+    <div className={expanded ? 'flex h-[calc(100vh-7.5rem)] min-h-0 flex-col gap-4 overflow-hidden' : 'space-y-5'}>
+      <div className={expanded ? 'rounded-2xl border border-borderSoft bg-gradient-to-r from-slate-950/70 to-slate-900/30 p-4' : 'flex flex-wrap items-center gap-2'}>
+        <div className="flex flex-wrap items-center gap-2">
         <Badge value={nota.status_nota || nota.status_rotulo || nota.status_documento || 'Sem status'} />
         <Badge value={nota.conferencia_status || 'pendente'} />
         <Badge value={nota.prioridade_fila || nota.prioridade || 'Prioridade nao informada'} />
+        </div>
+        {expanded ? (
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Prestador</p><p className="mt-1 truncate font-semibold text-white" title={nota.prestador_nome || ''}>{displayValue(nota.prestador_nome)}</p></div>
+            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Tomador</p><p className="mt-1 truncate font-semibold text-white" title={nota.tomador_nome || ''}>{displayValue(nota.tomador_nome)}</p></div>
+            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Valor do servico</p><p className="mt-1 text-lg font-bold text-white">{formatCurrency(nota.valor_servico ?? nota.valor)}</p></div>
+            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Valor liquido</p><p className="mt-1 text-lg font-bold text-emerald-300">{formatCurrency(nota.valor_liquido)}</p></div>
+          </div>
+        ) : null}
       </div>
 
-      <section className="rounded-2xl border border-borderSoft bg-slate-950/20 p-4">
+      {expanded ? (
+        <nav className="flex shrink-0 gap-1 overflow-x-auto border-b border-borderSoft" aria-label="Areas da nota">
+          {tabs.map(({ id, label, icon: Icon }) => (
+            <button key={id} type="button" onClick={() => setExpandedTab(id)} className={`flex items-center gap-2 whitespace-nowrap border-b-2 px-4 py-3 text-sm font-semibold transition ${expandedTab === id ? 'border-accent text-white' : 'border-transparent text-textSoft hover:text-white'}`}>
+              <Icon size={17} /> {label}
+            </button>
+          ))}
+        </nav>
+      ) : null}
+
+      <div className={expanded ? 'grid min-h-0 flex-1 grid-cols-1 gap-4 overflow-y-auto lg:grid-cols-12 lg:overflow-hidden' : 'space-y-5'}>
+
+      {(!expanded || expandedTab === 'visao') ? <section className={sectionClass('lg:col-span-7')}>
         <h3 className="mb-3 text-base font-semibold text-white">Resumo da nota</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className={`grid gap-2.5 sm:grid-cols-2 ${expanded ? '2xl:grid-cols-3' : ''}`}>
           <Row label="Numero" value={nota.numero_nfse || nota.numero_nota || nota.numero} />
           <Row label="Tipo" value={nota.tipo} />
           <Row label="Competencia" value={formatDate(nota.competencia)} />
@@ -274,11 +310,11 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
             <Row label="Chave" value={nota.chave} />
           </div>
         </div>
-      </section>
+      </section> : null}
 
-      <section className="rounded-2xl border border-borderSoft bg-slate-950/20 p-4">
+      {(!expanded || expandedTab === 'visao') ? <section className={sectionClass('lg:col-span-5')}>
         <h3 className="mb-3 text-base font-semibold text-white">Operacional</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className={`grid gap-3 sm:grid-cols-2 ${expanded ? 'xl:grid-cols-3' : ''}`}>
           <Row label="Simples Nacional / XML" value={nota.simples_nacional || nota.simples_xml || nota.simples_nacional_xml || 'Não informado'} />
           <Row label="Consulta Simples API" value={nota.consulta_simples_api || 'Pendente'} />
           <Row label="Status Simples Nacional" value={nota.status_simples_nacional || 'Pendente'} />
@@ -290,18 +326,18 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
           <Row label="Entrada na fila" value={formatDateTime(nota.entrada_fila || nota.entrada || nota.importado_em || nota.created_at)} />
           <Row label="SLA" value={slaLabel(nota)} />
         </div>
-      </section>
+      </section> : null}
 
-      <section className="rounded-2xl border border-borderSoft bg-slate-950/20 p-4">
+      {(!expanded || expandedTab === 'conferencia') ? <section className={sectionClass('lg:col-span-12')}>
         <h3 className="mb-3 text-base font-semibold text-white">Analise interna</h3>
           <div className="grid gap-3">
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className={`grid gap-3 sm:grid-cols-2 ${expanded ? 'xl:grid-cols-4' : ''}`}>
               <Row label="Status da fila" value={nota.status_fila_final || nota.status_fila || nota.status || nota.status_documento} />
             <Row label="Prioridade atual" value={nota.prioridade_fila || nota.prioridade || prioridadeManualValue(nota.prioridade_manual)} />
             <Row label="Responsavel atual" value={nota.responsavel || operator?.operator_name} />
             <Row label="Ultima conferencia" value={formatDateTime(nota.conferencia_atualizado_em)} />
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className={`grid gap-3 sm:grid-cols-2 ${expanded ? 'xl:grid-cols-4' : ''}`}>
             <label>
               <span className="label">Status da conferencia</span>
               <select className="field" value={status} onChange={(event) => setStatus(event.target.value)}>
@@ -333,18 +369,20 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
             <input type="checkbox" checked={prioridadeManual} onChange={(event) => setPrioridadeManual(event.target.checked)} />
             Prioridade definida manualmente
           </label>
+          <div className={expanded ? 'grid gap-3 xl:grid-cols-3' : 'grid gap-3'}>
           <label>
             <span className="label">Observacao</span>
-            <textarea className="field min-h-28 resize-y" value={observacao} onChange={(event) => setObservacao(event.target.value)} />
+            <textarea className={`field resize-y ${expanded ? 'min-h-16' : 'min-h-28'}`} value={observacao} onChange={(event) => setObservacao(event.target.value)} />
           </label>
           <label>
             <span className="label">Observacao interna</span>
-            <textarea className="field min-h-28 resize-y opacity-70" value={observacaoInterna} readOnly aria-readonly="true" title="Campo preenchido apenas pelo sistema" />
+            <textarea className={`field resize-y opacity-70 ${expanded ? 'min-h-16' : 'min-h-28'}`} value={observacaoInterna} readOnly aria-readonly="true" title="Campo preenchido apenas pelo sistema" />
           </label>
           <label>
             <span className="label">Alertas fiscais</span>
-            <textarea className="field min-h-24 resize-y opacity-70" value={alertasFiscais} readOnly aria-readonly="true" title="Campo preenchido apenas pelo sistema" placeholder="Preenchido automaticamente pelo sistema" />
+            <textarea className={`field resize-y opacity-70 ${expanded ? 'min-h-16' : 'min-h-24'}`} value={alertasFiscais} readOnly aria-readonly="true" title="Campo preenchido apenas pelo sistema" placeholder="Preenchido automaticamente pelo sistema" />
           </label>
+          </div>
           {salvar.isError ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">Nao foi possivel salvar: {salvar.error.message}</div> : null}
           {salvar.isSuccess ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">Analise salva.</div> : null}
           <div className="flex justify-end">
@@ -354,9 +392,9 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
             </Button>
           </div>
         </div>
-      </section>
+      </section> : null}
 
-      <section className="rounded-2xl border border-borderSoft bg-slate-950/20 p-4">
+      {(!expanded || expandedTab === 'arquivos') ? <section className={sectionClass('lg:col-span-6')}>
         <h3 className="mb-3 text-base font-semibold text-white">Documentos da nota</h3>
         {arquivosQuery.isLoading ? (
           <div className="flex items-center gap-2 text-sm text-textSoft"><Loader2 className="animate-spin" size={16} /> Carregando arquivos...</div>
@@ -374,9 +412,9 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
             </div>
           </>
         )}
-      </section>
+      </section> : null}
 
-      <section className="rounded-2xl border border-borderSoft bg-slate-950/20 p-4">
+      {(!expanded || expandedTab === 'arquivos') ? <section className={sectionClass('lg:col-span-6')}>
         <h3 className="mb-3 text-base font-semibold text-white">Eventos da nota</h3>
         {eventosQuery.isLoading ? (
           <div className="flex items-center gap-2 text-sm text-textSoft"><Loader2 className="animate-spin" size={16} /> Carregando eventos...</div>
@@ -398,9 +436,9 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
             ))}
           </div>
         )}
-      </section>
+      </section> : null}
 
-      <section className="rounded-2xl border border-borderSoft bg-slate-950/20 p-4">
+      {(!expanded || expandedTab === 'fiscal') ? <section className={sectionClass('lg:col-span-12')}>
         <h3 className="mb-3 text-base font-semibold text-white">Comparativo de tributos</h3>
         {tributosQuery.isLoading ? (
           <div className="flex items-center gap-2 text-sm text-textSoft"><Loader2 className="animate-spin" size={16} /> Carregando comparativo...</div>
@@ -439,7 +477,8 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
             </table>
           </div>
         )}
-      </section>
+      </section> : null}
+      </div>
     </div>
   );
 }

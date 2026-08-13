@@ -20,7 +20,7 @@ export function NotaDrawer({ nota, onClose }: { nota: Nota | null; onClose: () =
   const currentNota = notaDetalhada || nota;
 
   return (
-    <Drawer open={open} title={`NFS-e ${currentNota?.numero_nfse || currentNota?.numero_nota || currentNota?.id || ''}`} onClose={onClose}>
+    <Drawer open={open} title={`NFS-e ${currentNota?.numero_nfse || currentNota?.numero_nota || currentNota?.id || ''}`} onClose={onClose} expandable>
       {currentNota ? (
         <div className="space-y-5">
           {isLoading ? (
