@@ -1,4 +1,4 @@
-import { BookOpen, ChevronDown, ClipboardCheck, Cpu, FileText, Gauge, ListChecks, Settings, ShieldCheck, Workflow, type LucideIcon } from 'lucide-react';
+import { BookOpen, ChevronDown, ClipboardCheck, Cpu, Download, FileText, Gauge, ListChecks, Settings, ShieldCheck, Workflow, type LucideIcon } from 'lucide-react';
 import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
 
@@ -45,9 +45,21 @@ const manualImagesByIndex: ManualImage[][] = [
 ];
 
 export function Configuracoes() {
+  const showCompleteManual = new URLSearchParams(window.location.search).has('manual-completo');
+
   return (
     <div className="mx-auto w-full max-w-5xl">
       <PageHeader eyebrow="Ajuda" title="Manual do sistema" description="Entenda de forma simples para que serve cada opção do menu e como começar a usá-la." />
+      <div className="mb-6 flex justify-end print:hidden">
+        <a
+          href="/manual/manual-completo-portal-nfse.pdf"
+          download="Manual-completo-Portal-NFS-e.pdf"
+          className="inline-flex items-center gap-2 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <Download size={18} />
+          Baixar manual completo
+        </a>
+      </div>
       <Card className="mb-6 flex items-start gap-4 border-accent/20 bg-accent/5">
         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/15 text-accent"><BookOpen size={22} /></span>
         <div><h2 className="font-bold text-textStrong">Como consultar este manual</h2><p className="mt-1 text-sm leading-6 text-textSoft">Clique em um dos cards abaixo para abrir a explicação. Você pode fechar o card clicando nele novamente.</p></div>
@@ -57,7 +69,7 @@ export function Configuracoes() {
           const Icon = item.icon;
           const images = manualImagesByIndex[itemIndex] || [];
           return (
-            <details key={item.title} className="group overflow-hidden rounded-2xl border border-borderSoft bg-panel shadow-card transition-colors open:border-accent/30">
+            <details open={showCompleteManual} key={item.title} className="group overflow-hidden rounded-2xl border border-borderSoft bg-panel shadow-card transition-colors open:border-accent/30">
               <summary className="flex cursor-pointer list-none items-center gap-4 p-4 marker:content-none hover:bg-panel2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent sm:p-5">
                 <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/15 text-accent"><Icon size={22} /></span>
                 <span className="min-w-0 flex-1"><span className="block font-bold text-textStrong">{item.title}</span><span className="mt-1 block text-sm leading-5 text-textSoft">{item.summary}</span></span>
