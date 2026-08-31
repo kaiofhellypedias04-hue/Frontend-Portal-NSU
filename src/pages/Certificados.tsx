@@ -19,16 +19,24 @@ export function Certificados() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
+  const orderedCertificates = useMemo(
+    () => [...certificados].sort((a, b) => (a.numero_ordem ?? a.id) - (b.numero_ordem ?? b.id)),
+    [certificados],
+  );
+
+  const certificateOrder = useMemo(
+    () => new Map(orderedCertificates.map((certificado, index) => [certificado.id, index + 1])),
+    [orderedCertificates],
+  );
+
   const filteredCertificates = useMemo(() => {
     const term = search.trim().toLocaleLowerCase('pt-BR');
-    return [...certificados]
-      .sort((a, b) => Number(b.ativo) - Number(a.ativo) || a.nome.localeCompare(b.nome, 'pt-BR'))
-      .filter((certificado) => {
+    return orderedCertificates.filter((certificado) => {
         if (!term) return true;
-        return [certificado.nome, certificado.subject_cn, certificado.empresa_id, certificado.id]
+        return [certificado.nome, certificado.subject_cn, certificado.empresa_id, certificado.id, certificateOrder.get(certificado.id)]
           .some((value) => String(value ?? '').toLocaleLowerCase('pt-BR').includes(term));
       });
-  }, [certificados, search]);
+  }, [certificateOrder, orderedCertificates, search]);
 
   const totalPages = Math.max(1, Math.ceil(filteredCertificates.length / PAGE_SIZE));
   const paginatedCertificates = filteredCertificates.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -102,7 +110,7 @@ export function Certificados() {
                             tone={certificado.senha_configurada || certificado.possui_senha ? 'success' : 'warning'}
                           />
                           <Badge value={`Empresa #${certificado.empresa_id}`} tone="muted" />
-                          <Badge value={`Certificado #${certificado.id}`} tone="muted" />
+                          <Badge value={`Certificado #${certificateOrder.get(certificado.id)}`} tone="muted" />
                         </div>
                         <p className="mt-3 truncate text-sm text-slate-300" title={certificado.subject_cn || undefined}>
                           {certificado.subject_cn || 'Subject não informado'}

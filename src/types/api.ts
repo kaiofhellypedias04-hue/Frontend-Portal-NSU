@@ -70,6 +70,7 @@ export type StorageTestResponse = {
 
 export type Certificado = {
   id: number;
+  numero_ordem?: number | null;
   empresa_id: number;
   nome: string;
   storage_key?: string;
