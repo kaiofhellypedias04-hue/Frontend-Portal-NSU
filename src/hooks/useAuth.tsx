@@ -28,7 +28,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = getAccessToken();
     if (!token) {
-      setLoading(false);
+      const localAccess = ['localhost', '127.0.0.1', '::1'].includes(window.location.hostname);
+      if (!localAccess) {
+        setLoading(false);
+        return;
+      }
+      api.loginLocal()
+        .then(autenticarComToken)
+        .catch(() => setUsuario(null))
+        .finally(() => setLoading(false));
       return;
     }
     api.me().then(setUsuario).catch((error: unknown) => {

@@ -607,6 +607,10 @@ function normalizeConsultaStatus(status: ConsultaStatus): ConsultaStatus {
 }
 
 export const api = {
+  loginLocal: () =>
+    request<LoginResponse>('/auth/local', {
+      method: 'POST',
+    }),
   login: (payload: LoginRequest) =>
     request<LoginResponse>('/auth/login', {
       method: 'POST',
