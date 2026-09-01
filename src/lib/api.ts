@@ -628,6 +628,13 @@ export const api = {
   adminAtualizarUsuario: (usuarioId: number, payload: { nome?: string | null; grupo?: string; ativo?: boolean; is_admin?: boolean }) => request(`/admin/usuarios/${usuarioId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   adminRedefinirSenha: (usuarioId: number, senha: string) => request<{ ok: boolean; message: string }>(`/admin/usuarios/${usuarioId}/redefinir-senha`, { method: 'POST', body: JSON.stringify({ senha }) }),
   adminErros: (limit = 50) => request<Array<{ id: string; origem: string; processo_id?: number | null; empresa_id?: number | null; mensagem: string; created_at?: string | null }>>('/admin/erros', { params: { limit } }),
+  adminArquivamento: (ano = 2026) => request<{
+    ano_operacional: number; notas_elegiveis: number; notas_arquivadas: number;
+    empresas: Array<{ empresa_id: number; empresa_nome?: string; notas: number }>;
+    execucao: { status: string; iniciado_em?: string | null; finalizado_em?: string | null; resultado?: { notas?: number; empresas?: number } | null; erro?: string | null };
+    backups: Array<{ id: number; empresa_id?: number | null; filename: string; tamanho_bytes?: number | null; checksum?: string | null; created_at?: string | null }>;
+  }>('/admin/arquivamento', { params: { ano } }),
+  adminExecutarArquivamento: (ano: number, confirmacao: string) => request<{ status: string; ano_operacional: number }>('/admin/arquivamento', { method: 'POST', body: JSON.stringify({ ano, confirmacao }) }),
   listarGruposPublicos: () => request<GrupoPublico[]>('/auth/grupos'),
   adminGrupos: () => request<Array<{ id: number; codigo: string; nome: string; ativo: boolean; usuarios: number; empresas: number; created_at?: string | null }>>('/admin/grupos'),
   adminCriarGrupo: (nome: string, codigo?: string) => request('/admin/grupos', { method: 'POST', body: JSON.stringify({ nome, codigo: codigo || undefined }) }),
