@@ -3,7 +3,6 @@ import { api } from '../lib/api';
 import { toast } from '../components/ui/Toaster';
 import { onlyDigits } from '../lib/format';
 import { cleanClientOnlyFiltersForApi, dedupeNotas, filterNotasByPortalFilters, notaUniqueKey } from '../lib/notaFilters';
-import { invalidatePortalData } from './queryInvalidation';
 import type { ConferenciaPayload, NotasFilters } from '../types/api';
 
 function cleanFilters(filters?: NotasFilters): NotasFilters {
@@ -70,7 +69,7 @@ export function useConferenciaNotasInfinite(filters?: NotasFilters) {
       }
       return undefined;
     },
-    refetchInterval: 5_000,
+    refetchInterval: (query) => ((query.state.data?.pages.length ?? 0) <= 1 ? 5_000 : false),
     refetchIntervalInBackground: false,
     refetchOnWindowFocus: true,
     staleTime: 3_000,
@@ -84,8 +83,31 @@ export function useSalvarConferenciaNota() {
     mutationFn: ({ notaId, payload }: { notaId: number; payload: ConferenciaPayload }) => api.salvarConferenciaNota(notaId, payload),
     onSuccess: async (nota, variables) => {
       queryClient.setQueryData(['nota-detalhe', variables.notaId], nota);
+      queryClient.setQueriesData({ queryKey: ['conferencia-notas-infinite'] }, (previous: any) => {
+        if (!previous?.pages) return previous;
+        return {
+          ...previous,
+          pages: previous.pages.map((page: any) => ({
+            ...page,
+            items: page.items?.map((item: any) => (item.id === nota.id ? nota : item)),
+          })),
+        };
+      });
+      queryClient.setQueriesData({ queryKey: ['notas-infinite'] }, (previous: any) => {
+        if (!previous?.pages) return previous;
+        return {
+          ...previous,
+          pages: previous.pages.map((page: any) => ({
+            ...page,
+            items: page.items?.map((item: any) => (item.id === nota.id ? nota : item)),
+          })),
+        };
+      });
       toast.success('Conferência salva');
-      await invalidatePortalData(queryClient);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['conferencia-notas'] }),
+        queryClient.invalidateQueries({ queryKey: ['notas-totals'] }),
+      ]);
       await queryClient.invalidateQueries({ queryKey: ['nota-detalhe', variables.notaId] });
     },
   });
