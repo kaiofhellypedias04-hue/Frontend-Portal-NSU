@@ -8,6 +8,7 @@ import { api } from '../../lib/api';
 import { formatCnpj, formatCurrency, formatDate, formatDateTime, formatServiceCode } from '../../lib/format';
 import { useSalvarConferenciaNota } from '../../hooks/useConferenciaNotas';
 import { useOperatorContext } from '../../hooks/useOperator';
+import { useAuth } from '../../hooks/useAuth';
 import type { Arquivo, Nota, NotaTributoComparativo } from '../../types/api';
 
 function displayValue(value?: string | number | null) {
@@ -230,6 +231,8 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
   const [alertasFiscais, setAlertasFiscais] = useState(Array.isArray(nota.alertas_fiscais) ? nota.alertas_fiscais.join('\n') : nota.alertas_fiscais || '');
   const salvar = useSalvarConferenciaNota();
   const { operator } = useOperatorContext();
+  const { usuario } = useAuth();
+  const [retificando, setRetificando] = useState(false);
 
   const arquivosQuery = useQuery({
     queryKey: ['nota-arquivos', nota.id],
@@ -265,9 +268,12 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
         operator_name: operator?.operator_name,
         operator_id: operator?.operator_id,
         device_id: operator?.device_id,
+        retificar: retificando,
       },
     });
   }
+
+  const jaAnalisada = Boolean(nota.responsavel && (nota.conferencia_atualizado_em || nota.conferencia_por));
 
   const sectionClass = (position = '') =>
     `rounded-2xl border border-borderSoft bg-slate-950/20 p-4 ${expanded ? `min-h-0 overflow-auto lg:p-6 ${position}` : ''}`;
@@ -406,12 +412,14 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
           </label>
           </div>
           {salvar.isError ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">Nao foi possivel salvar: {salvar.error.message}</div> : null}
-          {salvar.isSuccess ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">Analise salva.</div> : null}
-          <div className="flex justify-end">
-            <Button variant="primary" onClick={save} disabled={salvar.isPending}>
+          {salvar.isSuccess ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">{retificando ? 'Retificacao salva.' : 'Analise salva.'}</div> : null}
+          {jaAnalisada && !retificando ? <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200">Esta nota ja foi analisada por {nota.responsavel}. Para alterar, inicie uma retificacao.</div> : null}
+          <div className="flex flex-col justify-end gap-2 sm:flex-row">
+            {jaAnalisada && !retificando ? <Button variant="secondary" onClick={() => { setRetificando(true); salvar.reset(); }} disabled={salvar.isPending}><span aria-hidden="true">↻</span> Retificar analise</Button> : null}
+            {(!jaAnalisada || retificando) ? <Button variant="primary" onClick={save} disabled={salvar.isPending}>
               {salvar.isPending ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-              Salvar analise
-            </Button>
+              {retificando ? `Salvar retificacao${usuario?.nome ? ` de ${usuario.nome}` : ''}` : 'Salvar analise'}
+            </Button> : null}
           </div>
         </div>
       </section> : null}

@@ -64,7 +64,7 @@ export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onC
   }
 
   return (
-    <section className="glass-card mb-5 overflow-hidden">
+    <section className="filter-panel filter-panel--notes mb-5 overflow-hidden">
       <div className="flex flex-col gap-3 border-b border-borderSoft p-4 sm:flex-row sm:items-center sm:justify-between">
         <button className="flex items-center gap-2 text-left" onClick={() => setOpen((state) => !state)}>
           <Filter size={20} className="text-accent" />
@@ -79,7 +79,7 @@ export function NotasFilterPanel({ value, onChange }: { value: NotasFilters; onC
         </div>
       </div>
       <FilterChips chips={chips} onRemove={removeFilter} />
-      <div className="border-b border-borderSoft px-4 py-3"><SavedViews storageKey="views:notas:v2" value={value} onApply={(saved) => { const normalized = normalizeNotasFilters(saved); setDraft(normalized); onChange(normalized); }} /></div>
+      <div className="filter-panel__views border-b border-borderSoft px-4 py-3"><SavedViews storageKey="views:notas:v2" value={value} onApply={(saved) => { const normalized = normalizeNotasFilters(saved); setDraft(normalized); onChange(normalized); }} /></div>
       {chips.length > 0 ? (
         <div className="border-b border-amber-400/20 bg-amber-400/10 px-4 py-2 text-xs text-amber-200">
           Filtros ativos podem ocultar notas recém-importadas. Limpe os filtros para ver tudo em ordem de importação.

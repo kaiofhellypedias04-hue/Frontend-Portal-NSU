@@ -109,7 +109,7 @@ export function ConferenciaFilters({
   }
 
   return (
-    <section className="mb-5 overflow-hidden rounded-2xl border border-borderSoft bg-panel shadow-card">
+    <section className="filter-panel filter-panel--conference mb-5 overflow-hidden">
       <div className="flex flex-col gap-4 p-4 sm:p-5 xl:flex-row xl:items-center xl:justify-between">
         <button className="flex min-h-11 items-center gap-3 rounded-xl text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent" onClick={() => setOpen((state) => !state)} aria-expanded={open}>
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent/10 text-accent"><Filter size={19} /></span>

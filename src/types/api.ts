@@ -426,6 +426,7 @@ export type NotaConferenciaPayload = {
   operator_name?: string;
   operator_id?: string;
   device_id?: string;
+  retificar?: boolean;
 };
 
 export type ConferenciaPayload = NotaConferenciaPayload;
