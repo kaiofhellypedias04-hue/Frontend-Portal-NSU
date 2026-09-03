@@ -42,7 +42,7 @@ export const toast = {
 const toneStyles: Record<ToastTone, { box: string; icon: typeof Info }> = {
   success: { box: 'border-emerald-400/30 bg-emerald-950/90 text-emerald-100', icon: CheckCircle2 },
   error: { box: 'border-rose-400/30 bg-rose-950/90 text-rose-100', icon: AlertTriangle },
-  info: { box: 'border-sky-400/30 bg-slate-950/90 text-sky-100', icon: Info },
+  info: { box: 'border-info/30 bg-surface-elevated text-info', icon: Info },
 };
 
 export function Toaster() {

@@ -7,7 +7,10 @@ function currentTheme(): Theme {
 }
 
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>(currentTheme);
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const saved = localStorage.getItem('nfse-theme');
+    return saved === 'light' || saved === 'dark' ? saved : currentTheme();
+  });
 
   const setTheme = useCallback((next: Theme) => {
     document.documentElement.dataset.theme = next;

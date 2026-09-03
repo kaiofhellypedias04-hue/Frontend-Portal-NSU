@@ -65,7 +65,7 @@ export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferên
   const { data, isLoading, isFetching, error, fetchNextPage, hasNextPage, isFetchingNextPage } = useConferenciaNotasInfinite(effectiveFilters);
   const { data: totals, isLoading: isLoadingTotals, error: totalsError } = useNotasTotals(effectiveFilters);
   const notasPaginadas = useMemo(() => dedupeNotas(data?.pages.flatMap((page) => page.items) ?? []), [data]);
-  const notas = totals?.items ?? notasPaginadas;
+  const notas = notasPaginadas;
   const lastPage = data?.pages[data.pages.length - 1];
   const totalNotas = totals?.total ?? lastPage?.total ?? notas.length;
   const defaultDescricao = tipoNotaFixo === 'tomada'
@@ -119,6 +119,7 @@ export function Conferencia({ tipoNotaFixo, direcaoNotaFixa, titulo = 'Conferên
 
       <NotasDownloadActions filters={effectiveFilters} />
       <ConferenciaFilters value={effectiveFilters} onChange={updateFilters} incidenciaOptions={incidenciaOptions} />
+      <p className="mb-3 text-sm text-text-secondary">Os indicadores abaixo usam as notas já carregadas na listagem. O total geral respeita o retorno da API.</p>
       <ConferenciaTable
         notas={notas}
         isLoading={isLoadingTotals || isLoading || (isFetching && notas.length === 0)}

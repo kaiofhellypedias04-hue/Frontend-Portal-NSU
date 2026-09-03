@@ -40,32 +40,32 @@ export function ConferenciaMobileCard({ nota, onOpen }: { nota: Nota; onOpen: (n
           {conferenciaIcon(nota.conferencia_status)}
           <div className="min-w-0">
             <p className="text-xs uppercase tracking-[0.16em] text-textSoft">NFS-e</p>
-            <h3 className="mt-0.5 truncate font-bold text-white">{notaNumero(nota)}</h3>
+            <h3 className="mt-0.5 truncate font-bold text-text-primary">{notaNumero(nota)}</h3>
           </div>
         </div>
         <Badge value={conferenciaLabel(nota.conferencia_status || 'pendente')} tone={badgeTone(nota.conferencia_status || 'pendente')} />
       </div>
 
-      <p className="mt-3 line-clamp-2 text-sm font-semibold text-white">{displayValue(nota.tomador_nome || 'Não informado no XML')}</p>
+      <p className="mt-3 line-clamp-2 text-sm font-semibold text-text-primary">{displayValue(nota.tomador_nome || 'Não informado no XML')}</p>
       <p className="mt-0.5 line-clamp-1 text-xs text-textSoft">{formatCnpj(nota.tomador_cnpj)}</p>
       <p className="mt-2 line-clamp-1 text-xs text-textSoft">Prestador: {displayValue(nota.prestador_nome)}</p>
 
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         <div>
           <p className="text-xs text-textSoft">Competência</p>
-          <p className="font-semibold text-white">{formatDate(nota.competencia)}</p>
+          <p className="font-semibold text-text-primary">{formatDate(nota.competencia)}</p>
         </div>
         <div>
           <p className="text-xs text-textSoft">Emissão</p>
-          <p className="font-semibold text-white">{formatDate(nota.data_emissao)}</p>
+          <p className="font-semibold text-text-primary">{formatDate(nota.data_emissao)}</p>
         </div>
         <div>
           <p className="text-xs text-textSoft">Valor</p>
-          <p className="font-semibold text-white">{formatCurrency(notaValor(nota))}</p>
+          <p className="font-semibold text-text-primary">{formatCurrency(notaValor(nota))}</p>
         </div>
         <div>
           <p className="text-xs text-textSoft">Cód. serviço</p>
-          <p className="font-semibold text-white">{formatServiceCode(nota.codigo_servico)}</p>
+          <p className="font-semibold text-text-primary">{formatServiceCode(nota.codigo_servico)}</p>
         </div>
       </div>
 

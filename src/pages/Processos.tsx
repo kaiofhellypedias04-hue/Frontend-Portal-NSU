@@ -36,7 +36,7 @@ export function Processos() {
       <Card className="mb-5 p-4">
         <div className="mb-4 flex flex-col gap-3 xl:flex-row xl:items-end xl:justify-between">
           <div>
-            <h2 className="font-semibold text-white">Resumo por empresa</h2>
+            <h2 className="font-semibold text-text-primary">Resumo por empresa</h2>
             <p className="text-sm text-textSoft">Visão operacional para identificar empresas corretas, divergentes e pendentes.</p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
@@ -51,16 +51,16 @@ export function Processos() {
         {resumoEmpresasQuery.isLoading ? (
           <div className="flex items-center gap-2 text-textSoft"><Loader2 className="animate-spin" size={18} /> Carregando resumo por empresa...</div>
         ) : resumoEmpresasQuery.error ? (
-          <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200">Resumo operacional por empresa ainda não disponível neste ambiente.</div>
+          <div className="rounded-xl border border-warning/30 bg-warning/10 p-3 text-sm text-warning">Resumo operacional por empresa ainda não disponível neste ambiente.</div>
         ) : !resumoEmpresasQuery.data?.length ? (
           <div className="rounded-xl border border-dashed border-borderSoft p-4 text-sm text-textSoft">Nenhuma empresa encontrada para os filtros aplicados.</div>
         ) : (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {resumoEmpresasQuery.data.map((item, index) => (
-              <div key={String(item.empresa_id ?? item.id ?? index)} className="rounded-xl border border-borderSoft bg-slate-950/30 p-4">
+              <div key={String(item.empresa_id ?? item.id ?? index)} className="rounded-xl border border-border bg-surface-muted p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-white">{item.empresa_nome || item.empresa || item.nome || '-'}</p>
+                    <p className="truncate text-sm font-semibold text-text-primary">{item.empresa_nome || item.empresa || item.nome || '-'}</p>
                     <p className="mt-1 text-xs text-textSoft">{item.cnpj || '-'}</p>
                   </div>
                   <Badge value={item.ultimo_status || 'Sem status'} />
@@ -109,7 +109,7 @@ export function Processos() {
                   <span>Início: {formatDateTime(p.started_at || p.created_at)}</span>
                   <span>Fim: {formatDateTime(p.finished_at)}</span>
                 </div>
-                {p.erro_resumo ? <p className="mt-2 line-clamp-2 text-xs text-rose-200">{p.erro_resumo}</p> : null}
+                {p.erro_resumo ? <p className="mt-2 line-clamp-2 text-xs text-danger">{p.erro_resumo}</p> : null}
                 {podeCancelar(p) ? (
                   <Button
                     variant="danger"
@@ -132,13 +132,13 @@ export function Processos() {
               <tbody className="divide-y divide-borderSoft/70">
                 {processos.map((p) => (
                   <tr key={p.id} className="cursor-pointer hover:bg-slate-800/30" onClick={() => setSelectedProcesso(p)}>
-                    <td className="px-4 py-4 font-semibold text-white">#{p.id}</td>
-                    <td className="px-4 py-4 text-slate-200">#{p.empresa_id}</td>
-                    <td className="px-4 py-4 text-slate-200">{p.certificado_id ? `#${p.certificado_id}` : '-'}</td>
+                    <td className="px-4 py-4 font-semibold text-text-primary">#{p.id}</td>
+                    <td className="px-4 py-4 text-text-primary">#{p.empresa_id}</td>
+                    <td className="px-4 py-4 text-text-primary">{p.certificado_id ? `#${p.certificado_id}` : '-'}</td>
                     <td className="px-4 py-4"><Badge value={p.status} /></td>
                     <td className="px-4 py-4 text-textSoft">{formatDateTime(p.started_at || p.created_at)}</td>
                     <td className="px-4 py-4 text-textSoft">{formatDateTime(p.finished_at)}</td>
-                    <td className="max-w-[260px] truncate px-4 py-4 text-rose-200">{p.erro_resumo || '-'}</td>
+                    <td className="max-w-[260px] truncate px-4 py-4 text-danger">{p.erro_resumo || '-'}</td>
                     <td className="px-4 py-4 text-right">
                       {podeCancelar(p) ? (
                         <Button variant="danger" onClick={(event) => { event.stopPropagation(); setProcessToCancel(p.id); }} disabled={cancelar.isPending}>

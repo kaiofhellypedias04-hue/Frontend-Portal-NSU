@@ -62,7 +62,7 @@ async function fetchAllNotasForSummary(filters?: NotasFilters, includeItems = tr
   };
 }
 
-export function useNotasTotals(filters?: NotasFilters, includeItems = true) {
+export function useNotasTotals(filters?: NotasFilters, includeItems = false) {
   const clean = cleanCountFilters(filters);
 
   return useQuery({

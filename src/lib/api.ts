@@ -179,7 +179,7 @@ async function requestBlob(
       signal: controller.signal,
       headers: {
         ...(rest.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-        Accept: 'application/zip',
+        Accept: 'application/zip, application/pdf',
         ...authHeaders(),
         ...(rest.headers || {}),
       },
@@ -758,6 +758,16 @@ export const api = {
   obterNotaPorChave: (chave: string, empresaId?: number) =>
     request<Nota>(`/notas/chave/${encodeURIComponent(chave)}`, { params: { empresa_id: empresaId } }).then(normalizeNota),
   getNotaArquivos: (notaId: string | number) => request<NotaArquivo[] | { items?: NotaArquivo[] }>(`/notas/${notaId}/arquivos`).then((response) => extractItems(response).map(normalizeArquivo)),
+  gerarDanfse: async (xmlArquivoId: number, fallbackFilename = 'DANFSe.pdf') => {
+    const xml = await requestArquivoBlob(`/arquivos/${xmlArquivoId}/download`, 'nota.xml');
+    const form = new FormData();
+    form.append('arquivo_xml', xml.blob, 'nota.xml');
+    return requestBlob('/api/danfse/gerar', {
+      method: 'POST',
+      body: form,
+      fallbackFilename,
+    });
+  },
   listarArquivosNota: (notaId: number) => request<Arquivo[] | { items?: Arquivo[] }>(`/notas/${notaId}/arquivos`).then((response) => extractItems(response).map(normalizeArquivo)),
   listarEventosNota: (notaId: number) => request<NotaEvento[] | { items?: NotaEvento[] }>(`/notas/${notaId}/eventos`).then((response) => extractItems(response).map(normalizeDates)),
   getNotaTributosComparativo: (notaId: string | number) => request<TributoComparativoItem[] | { items?: TributoComparativoItem[] }>(`/notas/${notaId}/tributos-comparativo`).then(extractItems),

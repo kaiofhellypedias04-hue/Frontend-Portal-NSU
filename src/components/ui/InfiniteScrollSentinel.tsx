@@ -74,7 +74,7 @@ export function InfiniteScrollSentinel({
       {isLoading ? (
         label
       ) : (
-        <button type="button" className="rounded-lg border border-borderSoft bg-panel2 px-3 py-2 text-xs font-semibold text-slate-100 hover:border-sky-400/60" onClick={loadMore}>
+        <button type="button" className="rounded-lg border border-border bg-surface-muted px-3 py-2 text-xs font-semibold text-text-primary hover:border-primary/60" onClick={loadMore}>
           Carregar mais registros
         </button>
       )}

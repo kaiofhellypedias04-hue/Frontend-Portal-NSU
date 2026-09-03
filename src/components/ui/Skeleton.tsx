@@ -1,7 +1,7 @@
 import { classNames } from '../../lib/format';
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={classNames('animate-pulse rounded-lg bg-slate-700/40', className)} aria-hidden="true" />;
+  return <div className={classNames('animate-pulse rounded-lg bg-surface-muted', className)} aria-hidden="true" />;
 }
 
 export function TableSkeleton({ rows = 8, title }: { rows?: number; title?: string }) {

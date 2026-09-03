@@ -69,7 +69,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
     minWidth: 42,
     cellClassName: CELL_TEXT_SIZE,
     render: (nota) => (
-      <div className="truncate font-bold text-white" title={nota.numero_nfse || '-'}>{nota.numero_nfse || '-'}</div>
+      <div className="truncate font-bold text-text-primary" title={nota.numero_nfse || '-'}>{nota.numero_nfse || '-'}</div>
     ),
   },
   {
@@ -82,7 +82,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
       const empresa = nota.tomador_nome || nota.empresa_nome || '-';
       return (
         <>
-          <div className="truncate font-medium text-slate-100" title={empresa}>{empresa}</div>
+          <div className="truncate font-medium text-text-primary" title={empresa}>{empresa}</div>
           <div className="truncate text-textSoft">{nota.tomador_cnpj || '-'}</div>
         </>
       );
@@ -98,7 +98,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
       const prestador = nota.prestador_nome || '-';
       return (
         <>
-          <div className="truncate font-medium text-slate-100" title={prestador}>{prestador}</div>
+          <div className="truncate font-medium text-text-primary" title={prestador}>{prestador}</div>
           <div className="truncate text-textSoft">{nota.prestador_cnpj || '-'}</div>
         </>
       );
@@ -115,7 +115,7 @@ const NOTAS_COLUMNS: NotaColumn[] = [
   },
   { key: 'competencia', label: 'Comp.', width: 94, minWidth: 42, align: 'center', cellClassName: CELL_TEXT_SIZE, render: (nota) => formatDate(nota.competencia) },
   { key: 'emissao', label: 'Emiss.', width: 94, minWidth: 42, align: 'center', cellClassName: CELL_TEXT_SIZE, render: (nota) => formatDate(nota.data_emissao) },
-  { key: 'valor', label: 'Valor', width: 110, minWidth: 48, align: 'right', cellClassName: CELL_TEXT_SIZE, render: (nota) => <span className="font-semibold text-slate-100">{formatCurrency(nota.valor_servico)}</span> },
+  { key: 'valor', label: 'Valor', width: 110, minWidth: 48, align: 'right', cellClassName: CELL_TEXT_SIZE, render: (nota) => <span className="font-semibold text-text-primary">{formatCurrency(nota.valor_servico)}</span> },
   {
     key: 'status',
     label: 'Status',
@@ -236,7 +236,7 @@ export function NotasTable({
     <section className="glass-card min-w-0 overflow-hidden">
       <div className="flex min-w-0 flex-wrap items-center justify-between gap-4 border-b border-borderSoft p-4">
         <div className="min-w-0">
-          <h2 className="font-semibold text-white">Notas consultadas</h2>
+          <h2 className="font-semibold text-text-primary">Notas consultadas</h2>
           <p className="truncate text-sm text-textSoft">Últimas importadas primeiro. Use o scroll horizontal para ver todas as colunas.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

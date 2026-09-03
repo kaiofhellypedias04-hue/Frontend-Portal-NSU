@@ -19,30 +19,30 @@ export function NotaMobileCard({ nota, onOpen }: { nota: Nota; onOpen: (nota: No
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.16em] text-textSoft">NFS-e</p>
-          <h3 className="mt-1 font-bold text-white">{nota.numero_nfse || nota.id}</h3>
+          <h3 className="mt-1 font-bold text-text-primary">{nota.numero_nfse || nota.id}</h3>
         </div>
         <Badge value={nota.status_rotulo || nota.status_documento || 'Sem status'} />
       </div>
 
-      <p className="mt-3 line-clamp-2 text-sm font-semibold text-white">{nota.tomador_nome || nota.empresa_nome || '-'}</p>
+      <p className="mt-3 line-clamp-2 text-sm font-semibold text-text-primary">{nota.tomador_nome || nota.empresa_nome || '-'}</p>
       <p className="mt-1 line-clamp-1 text-xs text-textSoft">{nota.prestador_nome || 'Prestador não informado'}</p>
 
       <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
         <div>
           <p className="text-xs text-textSoft">Competência</p>
-          <p className="font-semibold text-white">{formatDate(nota.competencia)}</p>
+          <p className="font-semibold text-text-primary">{formatDate(nota.competencia)}</p>
         </div>
         <div>
           <p className="text-xs text-textSoft">Emissão</p>
-          <p className="font-semibold text-white">{formatDate(nota.data_emissao)}</p>
+          <p className="font-semibold text-text-primary">{formatDate(nota.data_emissao)}</p>
         </div>
         <div>
           <p className="text-xs text-textSoft">Valor</p>
-          <p className="font-semibold text-white">{formatCurrency(nota.valor_servico)}</p>
+          <p className="font-semibold text-text-primary">{formatCurrency(nota.valor_servico)}</p>
         </div>
         <div>
           <p className="text-xs text-textSoft">Cód. serviço</p>
-          <p className="font-semibold text-white">{formatServiceCode(nota.codigo_servico)}</p>
+          <p className="font-semibold text-text-primary">{formatServiceCode(nota.codigo_servico)}</p>
         </div>
       </div>
 

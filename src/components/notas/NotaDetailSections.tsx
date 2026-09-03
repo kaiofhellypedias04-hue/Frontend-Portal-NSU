@@ -29,7 +29,7 @@ function Row({ label, value }: { label: string; value?: string | number | null }
   return (
     <div className="rounded-xl border border-borderSoft bg-slate-950/30 p-2.5">
       <p className="text-xs uppercase tracking-[0.16em] text-textSoft">{label}</p>
-      <p className="mt-0.5 break-words text-sm font-medium leading-snug text-slate-100">{displayValue(value)}</p>
+      <p className="mt-0.5 break-words text-sm font-medium leading-snug text-text-primary">{displayValue(value)}</p>
     </div>
   );
 }
@@ -99,7 +99,7 @@ function saveBlob(blob: Blob, filename: string) {
 
 function DocumentCard({ kind, arquivo, nota }: { kind: 'xml' | 'pdf' | 'outro'; arquivo?: Arquivo; nota: Nota }) {
   const expanded = useDrawerExpanded();
-  const [action, setAction] = useState<'view' | 'download' | null>(null);
+  const [action, setAction] = useState<'view' | 'download' | 'danfse' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const Icon = kind === 'xml' ? FileCode2 : FileText;
   const label = kind === 'outro' ? arquivo?.tipo || 'Arquivo' : kind.toUpperCase();
@@ -145,6 +145,23 @@ function DocumentCard({ kind, arquivo, nota }: { kind: 'xml' | 'pdf' | 'outro'; 
     }
   }
 
+  async function gerarDanfse() {
+    if (kind !== 'xml' || !arquivo?.id) return;
+    setError(null);
+    setAction('danfse');
+    try {
+      const { blob, filename } = await api.gerarDanfse(arquivo.id, `DANFSe-${nota.numero_nfse || nota.id}.pdf`);
+      const blobUrl = window.URL.createObjectURL(blob);
+      const tab = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      if (!tab) saveBlob(blob, filename);
+      window.setTimeout(() => window.URL.revokeObjectURL(blobUrl), 60_000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Nao foi possivel gerar o DANFSe.');
+    } finally {
+      setAction(null);
+    }
+  }
+
   return (
     <div className={`rounded-xl border border-borderSoft bg-slate-950/30 ${expanded ? 'p-3' : 'p-4'}`}>
       <div className="flex items-start justify-between gap-3">
@@ -169,6 +186,11 @@ function DocumentCard({ kind, arquivo, nota }: { kind: 'xml' | 'pdf' | 'outro'; 
             <Button variant="secondary" className="px-3" onClick={downloadArquivo} disabled={action !== null}>
               {action === 'download' ? <Loader2 className="animate-spin" size={15} /> : <Download size={15} />} Baixar
             </Button>
+            {kind === 'xml' ? (
+              <Button variant="primary" className="px-3" onClick={gerarDanfse} disabled={action !== null}>
+                {action === 'danfse' ? <Loader2 className="animate-spin" size={15} /> : <FileText size={15} />} Gerar DANFSe
+              </Button>
+            ) : null}
           </>
         ) : (
           <span className="text-sm text-textSoft">Arquivo ainda nao vinculado a esta nota.</span>
@@ -267,9 +289,9 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
         </div>
         {expanded ? (
           <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Prestador</p><p className="mt-1 truncate font-semibold text-white" title={nota.prestador_nome || ''}>{displayValue(nota.prestador_nome)}</p></div>
-            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Tomador</p><p className="mt-1 truncate font-semibold text-white" title={nota.tomador_nome || ''}>{displayValue(nota.tomador_nome)}</p></div>
-            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Valor do servico</p><p className="mt-1 text-lg font-bold text-white">{formatCurrency(nota.valor_servico ?? nota.valor)}</p></div>
+            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Prestador</p><p className="mt-1 truncate font-semibold text-text-primary" title={nota.prestador_nome || ''}>{displayValue(nota.prestador_nome)}</p></div>
+            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Tomador</p><p className="mt-1 truncate font-semibold text-text-primary" title={nota.tomador_nome || ''}>{displayValue(nota.tomador_nome)}</p></div>
+            <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Valor do servico</p><p className="mt-1 text-lg font-bold text-text-primary">{formatCurrency(nota.valor_servico ?? nota.valor)}</p></div>
             <div><p className="text-xs uppercase tracking-[0.14em] text-textSoft">Valor liquido</p><p className="mt-1 text-lg font-bold text-emerald-300">{formatCurrency(nota.valor_liquido)}</p></div>
           </div>
         ) : null}

@@ -55,7 +55,7 @@ function createConferenciaColumns(): ConferenciaColumn[] {
     width: 150,
     minWidth: 44,
     render: (nota) => (
-      <div className="truncate font-bold text-white">{notaNumero(nota)}</div>
+      <div className="truncate font-bold text-text-primary">{notaNumero(nota)}</div>
     ),
   },
   { key: 'tipo_nota', label: 'Tipo', width: 105, render: (nota) => <CompactBadge value={tipoNotaLabel(nota.tipo_nota)} /> },
@@ -68,7 +68,7 @@ function createConferenciaColumns(): ConferenciaColumn[] {
     minWidth: 36,
     render: (nota) => (
       <>
-        <CellText className="font-medium text-slate-100">{displayValue(nota.tomador_nome || 'Não informado no XML')}</CellText>
+        <CellText className="font-medium text-text-primary">{displayValue(nota.tomador_nome || 'Não informado no XML')}</CellText>
         <div className="truncate text-xs text-textSoft">{formatCnpj(nota.tomador_cnpj)}</div>
       </>
     ),
@@ -80,13 +80,13 @@ function createConferenciaColumns(): ConferenciaColumn[] {
     minWidth: 36,
     render: (nota) => (
       <>
-        <CellText className="font-medium text-slate-100">{displayValue(nota.prestador_nome)}</CellText>
+        <CellText className="font-medium text-text-primary">{displayValue(nota.prestador_nome)}</CellText>
         <div className="truncate text-xs text-textSoft">{formatCnpj(nota.prestador_cnpj)}</div>
       </>
     ),
   },
   { key: 'codigo_servico', label: 'Cód. serviço', width: 115, minWidth: 44, align: 'center', render: (nota) => formatServiceCode(nota.codigo_servico) },
-  { key: 'valor', label: 'Valor', width: 120, minWidth: 50, align: 'right', render: (nota) => <span className="font-semibold text-slate-100">{formatCurrency(notaValor(nota))}</span> },
+  { key: 'valor', label: 'Valor', width: 120, minWidth: 50, align: 'right', render: (nota) => <span className="font-semibold text-text-primary">{formatCurrency(notaValor(nota))}</span> },
   { key: 'status_nota', label: 'Status nota', width: 135, minWidth: 44, render: (nota) => <CompactBadge value={nota.status_nota || nota.status_rotulo || nota.status_documento} /> },
   { key: 'simples_xml', label: 'Simples Nacional / XML', width: 230, minWidth: 44, render: (nota) => <CompactBadge value={nota.simples_nacional || nota.simples_xml || nota.simples_nacional_xml} /> },
   { key: 'status_simples', label: 'Status Simples Nacional', width: 240, minWidth: 44, render: (nota) => <CompactBadge value={nota.status_simples_nacional} /> },
@@ -198,7 +198,7 @@ export function ConferenciaTable({
       <section className="glass-card min-w-0 overflow-hidden">
         <div className="flex min-w-0 flex-col gap-2 border-b border-borderSoft p-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h2 className="font-semibold text-white">Tabela operacional</h2>
+            <h2 className="font-semibold text-text-primary">Tabela operacional</h2>
             <p className="text-sm text-textSoft">
               {typeof totalCount === 'number' && totalCount !== notas.length
                 ? `${totalCount} notas nos filtros; ${notas.length} carregadas na tabela.`
@@ -208,7 +208,7 @@ export function ConferenciaTable({
           <div className="flex shrink-0 items-center gap-3">
             <button
               type="button"
-              className="hidden items-center gap-2 rounded-xl border border-borderSoft bg-panel2 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-sky-400/60 hover:bg-slate-800 md:inline-flex"
+              className="hidden items-center gap-2 rounded-xl border border-borderSoft bg-panel2 px-3 py-2 text-xs font-semibold text-text-primary transition hover:border-sky-400/60 hover:bg-slate-800 md:inline-flex"
               onClick={() => setMaximized(true)}
             >
               <Maximize2 size={14} /> Maximizar tabela
@@ -237,12 +237,12 @@ export function ConferenciaTable({
           <section className="flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-borderSoft bg-surface shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-borderSoft p-4">
               <div className="min-w-0">
-                <h2 className="font-semibold text-white">Tabela operacional</h2>
+                <h2 className="font-semibold text-text-primary">Tabela operacional</h2>
                 <p className="text-xs text-textSoft">Visualização maximizada sem zoom, com scroll horizontal dentro da tabela.</p>
               </div>
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-borderSoft bg-panel2 px-3 py-2 text-xs font-semibold text-slate-100 transition hover:border-sky-400/60 hover:bg-slate-800"
+                className="inline-flex items-center gap-2 rounded-xl border border-borderSoft bg-panel2 px-3 py-2 text-xs font-semibold text-text-primary transition hover:border-sky-400/60 hover:bg-slate-800"
                 onClick={() => setMaximized(false)}
               >
                 <X size={14} /> Fechar

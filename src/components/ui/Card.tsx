@@ -10,9 +10,9 @@ export function MetricCard({ label, value, hint, children }: { label: string; va
     <Card className="min-h-[116px]">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-textSoft">{label}</p>
-          <div className="mt-2 text-2xl font-bold tracking-tight text-textStrong">{value}</div>
-          {hint ? <p className="mt-2 text-xs text-textSoft">{hint}</p> : null}
+          <p className="text-sm text-text-secondary">{label}</p>
+          <div className="mt-2 text-2xl font-bold tracking-tight text-text-primary">{value}</div>
+          {hint ? <p className="mt-2 text-sm text-text-muted">{hint}</p> : null}
         </div>
         {children}
       </div>

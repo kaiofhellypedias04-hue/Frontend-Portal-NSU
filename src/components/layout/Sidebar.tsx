@@ -20,7 +20,7 @@ const groups = [
   ] },
   { label: 'Configuração', items: [
     { to: '/certificados', label: 'Certificados', icon: ShieldCheck },
-    { to: '/configuracoes', label: 'Manual', icon: Settings },
+    { to: '/configuracoes', label: 'Ajuda', icon: Settings },
   ] },
 ];
 
@@ -42,64 +42,66 @@ export function Sidebar({ open, onClose, hidden = false, collapsed = false }: { 
 
   return (
     <>
-      {open ? <button className="fixed inset-0 z-30 bg-black/50 lg:hidden" onClick={onClose} aria-label="Fechar menu" /> : null}
+      {open ? <button className="fixed inset-0 z-30 bg-black/40 backdrop-blur-[1px] lg:hidden" onClick={onClose} aria-label="Fechar menu" /> : null}
       <aside
         className={classNames(
-          'fixed left-0 top-0 z-40 flex h-screen w-72 flex-col overflow-y-auto border-r border-borderSoft bg-panel p-4 shadow-card transition-[width,transform] lg:translate-x-0',
+          'fixed left-0 top-0 z-40 flex h-screen w-72 flex-col overflow-y-auto border-r border-border bg-surface-elevated p-4 shadow-card transition-[width,transform] lg:translate-x-0',
           collapsed ? 'lg:w-20 lg:px-3' : 'lg:w-72',
           open ? 'translate-x-0' : '-translate-x-full',
         )}
       >
-        <div className="mb-7 flex items-center gap-3 rounded-2xl border border-borderSoft bg-panel2 p-3">
-          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-accent/15 text-accent">
+        <div className="mb-6 flex items-center gap-3 rounded-[12px] border border-border bg-surface-muted p-3">
+          <div className="grid h-11 w-11 shrink-0 place-items-center rounded-[12px] bg-primary/15 text-primary">
             <Activity size={22} />
           </div>
           <div className={collapsed ? 'lg:hidden' : ''}>
-            <p className="text-sm font-bold text-textStrong">Portal NFS-e</p>
-            <p className="text-xs text-textSoft">Painel operacional</p>
+            <p className="text-sm font-bold text-text-primary">Portal NFS-e</p>
+            <p className="text-xs text-text-secondary">Painel operacional</p>
           </div>
-          <button className="ml-auto grid h-10 w-10 place-items-center rounded-xl text-textSoft hover:bg-panel lg:hidden" onClick={onClose} aria-label="Fechar menu"><X size={20} /></button>
+          <button className="ml-auto grid h-10 w-10 place-items-center rounded-[12px] text-text-secondary hover:bg-surface-muted lg:hidden" onClick={onClose} aria-label="Fechar menu"><X size={20} /></button>
         </div>
 
-        <div className={classNames('mb-4 rounded-2xl border border-borderSoft bg-panel2 p-3', collapsed ? 'lg:hidden' : '')}>
-          <p className="text-xs uppercase tracking-[0.18em] text-textSoft">Operador</p>
-          <p className="mt-2 min-w-0 truncate text-sm font-semibold text-textStrong">{operator?.operator_name || '-'}</p>
-          <p className="mt-1 min-w-0 truncate text-xs font-medium text-accent">{grupoNome}</p>
-          {storageWarning ? <p className="mt-2 text-xs text-amber-200">Armazenamento local indisponível.</p> : null}
+        <div className={classNames('mb-4 rounded-[12px] border border-border bg-surface-muted p-3', collapsed ? 'lg:hidden' : '')}>
+          <p className="text-xs uppercase tracking-[0.18em] text-text-muted">Operador</p>
+          <p className="mt-2 min-w-0 truncate text-sm font-semibold text-text-primary">{operator?.operator_name || '-'}</p>
+          <p className="mt-1 min-w-0 truncate text-xs font-medium text-primary">{grupoNome}</p>
+          {storageWarning ? <p className="mt-2 text-xs text-warning">Armazenamento local indisponível.</p> : null}
         </div>
 
         <nav className="space-y-5" aria-label="Navegação principal">
           {navigationGroups.map((group) => (
             <div key={group.label}>
-              <p className={classNames('mb-1.5 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-textSoft', collapsed ? 'lg:hidden' : '')}>{group.label}</p>
-              <div className="space-y-1">{group.items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              title={collapsed ? item.label : undefined}
-              onMouseEnter={() => prefetchRoute(item.to)}
-              onFocus={() => prefetchRoute(item.to)}
-              onTouchStart={() => prefetchRoute(item.to)}
-              onClick={onClose}
-              className={({ isActive }) =>
-                classNames(
-                  'flex min-h-12 items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-                  collapsed ? 'lg:justify-center lg:px-0' : '',
-                  isActive ? 'bg-accent/15 text-accent ring-1 ring-accent/20' : 'text-textBody hover:bg-panel2 hover:text-textStrong',
-                )
-              }
-            >
-              <item.icon className="shrink-0" size={20} />
-              <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
-            </NavLink>
-              ))}</div>
+              <p className={classNames('mb-1.5 px-3 text-[11px] font-bold uppercase tracking-[0.14em] text-text-muted', collapsed ? 'lg:hidden' : '')}>{group.label}</p>
+              <div className="space-y-1">
+                {group.items.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    title={collapsed ? item.label : undefined}
+                    onMouseEnter={() => prefetchRoute(item.to)}
+                    onFocus={() => prefetchRoute(item.to)}
+                    onTouchStart={() => prefetchRoute(item.to)}
+                    onClick={onClose}
+                    className={({ isActive }) =>
+                      classNames(
+                        'flex min-h-12 items-center gap-3 rounded-[12px] px-3 py-3 text-[15px] font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                        collapsed ? 'lg:justify-center lg:px-0' : '',
+                        isActive ? 'bg-primary/12 text-primary ring-1 ring-primary/20' : 'text-text-secondary hover:bg-surface-muted hover:text-text-primary',
+                      )
+                    }
+                  >
+                    <item.icon className="shrink-0" size={20} />
+                    <span className={collapsed ? 'lg:hidden' : ''}>{item.label}</span>
+                  </NavLink>
+                ))}
+              </div>
             </div>
           ))}
         </nav>
 
-        <div className={classNames('mt-auto rounded-2xl border border-borderSoft bg-panel2 p-4', collapsed ? 'lg:hidden' : '')}>
-          <p className="text-xs uppercase tracking-[0.18em] text-textSoft">Motor separado</p>
-          <p className="mt-2 text-sm text-slate-200">O front só enxerga o painel. Fila, ciclo e certificados ficam no backend.</p>
+        <div className={classNames('mt-auto rounded-[12px] border border-border bg-surface-muted p-4', collapsed ? 'lg:hidden' : '')}>
+          <p className="text-xs uppercase tracking-[0.18em] text-text-muted">Operação</p>
+          <p className="mt-2 text-sm text-text-secondary">Fila, ciclo e certificados são acompanhados no portal sem duplicar controles técnicos na interface.</p>
         </div>
       </aside>
     </>
