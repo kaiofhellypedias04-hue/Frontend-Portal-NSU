@@ -45,7 +45,10 @@ export function NotaDrawer({ nota, notas = [], onSelectNota, onClose }: { nota: 
               Não foi possível atualizar os detalhes agora. Mostrando dados da lista.
             </div>
           ) : null}
-          <NotaDetailSections nota={currentNota} />
+          {/* key: o formulario de analise inicializa seu estado na montagem; sem
+              remontar, "passar para a proxima nota" mantinha os valores da nota
+              anterior (status, observacao, valor liquido correto...). */}
+          <NotaDetailSections key={currentNota.id} nota={currentNota} />
         </div>
       ) : null}
     </Drawer>

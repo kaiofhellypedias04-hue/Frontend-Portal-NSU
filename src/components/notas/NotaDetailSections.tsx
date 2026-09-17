@@ -1,5 +1,5 @@
 import { Calculator, ClipboardCheck, Download, ExternalLink, FileCode2, FileText, Files, LayoutDashboard, Loader2, RefreshCw, Save } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -228,6 +228,22 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
   const [prioridadeManual, setPrioridadeManual] = useState(Boolean(nota.prioridade_manual));
   const [responsavel, setResponsavel] = useState(nota.responsavel || '');
   const [valorLiquidoCorreto, setValorLiquidoCorreto] = useState(nota.valor_liquido_correto === null || nota.valor_liquido_correto === undefined ? '' : String(nota.valor_liquido_correto));
+
+  // Ressincroniza o formulario quando a nota exibida muda (troca de nota no
+  // drawer ou chegada do detalhe completo apos o item da lista). Sem isto o
+  // operador via - e podia salvar - a analise da nota anterior.
+  useEffect(() => {
+    setStatus(nota.conferencia_status || 'pendente');
+    setObservacao(nota.observacao || nota.conferencia_observacao || '');
+    setObservacaoInterna(nota.observacao_interna || '');
+    setPrioridade(nota.prioridade_fila || nota.prioridade || prioridadeManualValue(nota.prioridade_manual) || '');
+    setPrioridadeManual(Boolean(nota.prioridade_manual));
+    setResponsavel(nota.responsavel || '');
+    setValorLiquidoCorreto(nota.valor_liquido_correto === null || nota.valor_liquido_correto === undefined ? '' : String(nota.valor_liquido_correto));
+    setRetificando(false);
+    salvar.reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nota.id, nota.conferencia_atualizado_em, nota.valor_liquido_correto]);
   const [alertasFiscais, setAlertasFiscais] = useState(Array.isArray(nota.alertas_fiscais) ? nota.alertas_fiscais.join('\n') : nota.alertas_fiscais || '');
   const salvar = useSalvarConferenciaNota();
   const { operator } = useOperatorContext();
