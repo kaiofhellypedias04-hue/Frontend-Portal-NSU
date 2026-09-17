@@ -7,6 +7,12 @@ import type { ContaCreate, Usuario } from '../types/api';
 
 type AuthContextValue = {
   usuario: Usuario | null;
+  /**
+   * Espelha `require_operator` do backend: admin e operador podem iniciar/
+   * desativar consultas, cancelar processos e salvar conferencia; `leitura`
+   * recebe 403 nessas rotas, entao o portal esconde/desabilita as acoes.
+   */
+  podeOperar: boolean;
   loading: boolean;
   login: (email: string, senha: string) => Promise<void>;
   criarConta: (payload: ContaCreate) => Promise<void>;
@@ -71,7 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  return <AuthContext.Provider value={{ usuario, loading, login, criarConta, logout }}>{children}</AuthContext.Provider>;
+  const podeOperar = Boolean(usuario && (usuario.is_admin || (usuario.papel ?? 'operador') !== 'leitura'));
+
+  return <AuthContext.Provider value={{ usuario, podeOperar, loading, login, criarConta, logout }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

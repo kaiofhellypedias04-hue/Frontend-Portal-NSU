@@ -39,6 +39,8 @@ import type {
   LoginRequest,
   LoginResponse,
   Usuario,
+  UsuarioPapel,
+  NotaEventosSyncResponse,
 } from '../types/api';
 import { formatServiceCode } from './format';
 import { authHeaders } from './auth-storage';
@@ -624,8 +626,9 @@ export const api = {
   me: () => request<Usuario>('/auth/me'),
   adminOverview: () => request<Record<string, number>>('/admin/overview'),
   adminAcessos: (dias = 14) => request<Array<{ data: string; acessos: number; usuarios: number }>>('/admin/acessos', { params: { dias } }),
-  adminUsuarios: () => request<Array<{ id: number; nome?: string | null; email: string; grupo: string; ativo: boolean; is_admin: boolean; created_at?: string | null }>>('/admin/usuarios'),
-  adminAtualizarUsuario: (usuarioId: number, payload: { nome?: string | null; grupo?: string; ativo?: boolean; is_admin?: boolean }) => request(`/admin/usuarios/${usuarioId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
+  adminUsuarios: () => request<Array<{ id: number; nome?: string | null; email: string; grupo: string; ativo: boolean; is_admin: boolean; papel?: UsuarioPapel; created_at?: string | null }>>('/admin/usuarios'),
+  // `papel` (admin/operador/leitura) e o contrato atual do backend; `is_admin` continua aceito por compatibilidade.
+  adminAtualizarUsuario: (usuarioId: number, payload: { nome?: string | null; grupo?: string; ativo?: boolean; is_admin?: boolean; papel?: UsuarioPapel }) => request(`/admin/usuarios/${usuarioId}`, { method: 'PATCH', body: JSON.stringify(payload) }),
   adminRedefinirSenha: (usuarioId: number, senha: string) => request<{ ok: boolean; message: string }>(`/admin/usuarios/${usuarioId}/redefinir-senha`, { method: 'POST', body: JSON.stringify({ senha }) }),
   adminErros: (limit = 50) => request<Array<{ id: string; origem: string; processo_id?: number | null; empresa_id?: number | null; mensagem: string; created_at?: string | null }>>('/admin/erros', { params: { limit } }),
   adminArquivamento: (ano = 2026) => request<{
@@ -710,7 +713,6 @@ export const api = {
     limite: number;
     pausa: number;
     gerar_pdf_espelho: boolean;
-    baixar_pdf_oficial: boolean;
   }) => request<Processo>('/processos', { method: 'POST', body: JSON.stringify(payload) }).then(normalizeProcesso),
   cancelarProcesso: (processoId: number) =>
     request<{ status: string; message: string; processo: Processo }>(`/processos/${processoId}/cancelar`, { method: 'POST' }),
@@ -769,6 +771,10 @@ export const api = {
     });
   },
   listarArquivosNota: (notaId: number) => request<Arquivo[] | { items?: Arquivo[] }>(`/notas/${notaId}/arquivos`).then((response) => extractItems(response).map(normalizeArquivo)),
+  // Consulta os eventos da nota direto no ADN (cancelamento/substituicao) e
+  // aplica na nota: cobre o que a consulta por NSU ainda nao entregou.
+  sincronizarEventosNota: (notaId: number) =>
+    request<NotaEventosSyncResponse>(`/notas/${notaId}/sincronizar-eventos`, { method: 'POST' }),
   listarEventosNota: (notaId: number) => request<NotaEvento[] | { items?: NotaEvento[] }>(`/notas/${notaId}/eventos`).then((response) => extractItems(response).map(normalizeDates)),
   getNotaTributosComparativo: (notaId: string | number) => request<TributoComparativoItem[] | { items?: TributoComparativoItem[] }>(`/notas/${notaId}/tributos-comparativo`).then(extractItems),
   listarTributosComparativoNota: (notaId: number) => request<NotaTributoComparativo[] | { items?: NotaTributoComparativo[] }>(`/notas/${notaId}/tributos-comparativo`).then(extractItems),

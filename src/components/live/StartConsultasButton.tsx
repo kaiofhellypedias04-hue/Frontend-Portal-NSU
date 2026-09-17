@@ -1,8 +1,10 @@
 import { Loader2, PlayCircle, PowerOff } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useDesativarConsultas, useIniciarConsultas } from '../../hooks/useProcessos';
+import { useAuth } from '../../hooks/useAuth';
 
 export function StartConsultasButton({ automaticoAtivo, disabled }: { automaticoAtivo?: boolean; disabled?: boolean }) {
+  const { podeOperar } = useAuth();
   const iniciar = useIniciarConsultas();
   const desativar = useDesativarConsultas();
   const isPending = iniciar.isPending || desativar.isPending;
@@ -12,6 +14,10 @@ export function StartConsultasButton({ automaticoAtivo, disabled }: { automatico
     : desativar.isSuccess
       ? 'Motor ADN desativado. Processos pendentes e em andamento foram cancelados.'
       : null;
+
+  if (!podeOperar) {
+    return <p className="text-xs text-textSoft">Seu perfil e somente leitura: o motor ADN e controlado por um operador.</p>;
+  }
 
   return (
     <div className="flex flex-col items-start gap-2 sm:items-end">

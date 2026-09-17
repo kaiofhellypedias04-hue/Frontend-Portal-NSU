@@ -8,6 +8,7 @@ import { useCertificados } from '../hooks/useCertificados';
 import { useEmpresas } from '../hooks/useEmpresas';
 import { useLiveStatus } from '../hooks/useLiveStatus';
 import { useDesativarConsultas, useIniciarConsultas } from '../hooks/useProcessos';
+import { useAuth } from '../hooks/useAuth';
 import type { ConsultaIniciarPayload } from '../types/api';
 import { PageHeader } from '../components/ui/PageHeader';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
@@ -26,6 +27,7 @@ export function MotorAdn() {
   const { data: live } = useLiveStatus();
   const { data: empresas = [], isLoading: loadingEmpresas } = useEmpresas(true);
   const { data: certificados = [], isLoading: loadingCertificados } = useCertificados({ ativo: true });
+  const { podeOperar } = useAuth();
   const iniciar = useIniciarConsultas();
   const desativar = useDesativarConsultas();
 
@@ -160,12 +162,13 @@ export function MotorAdn() {
               </label>
             </div>
 
+            {!podeOperar ? <p className="mb-3 text-sm text-amber-200">Seu perfil e somente leitura. Iniciar ou desativar consultas exige um operador.</p> : null}
             <div className="flex flex-wrap gap-3">
-              <Button variant="primary" type="submit" disabled={isPending}>
+              <Button variant="primary" type="submit" disabled={isPending || !podeOperar}>
                 {iniciar.isPending ? <Loader2 className="animate-spin" size={16} /> : <PlayCircle size={16} />}
                 Iniciar com filtros
               </Button>
-              <Button type="button" variant="danger" onClick={() => setConfirmStop(true)} disabled={isPending || (!live?.automaticoAtivo && !live?.consultando)}>
+              <Button type="button" variant="danger" onClick={() => setConfirmStop(true)} disabled={isPending || !podeOperar || (!live?.automaticoAtivo && !live?.consultando)}>
                 {desativar.isPending ? <Loader2 className="animate-spin" size={16} /> : <PowerOff size={16} />}
                 Desativar
               </Button>

@@ -138,7 +138,7 @@ export function ProcessoDrawer({ processo, onClose }: { processo: Processo | nul
                         <span className="text-sm font-semibold text-white">Job #{job.id}</span>
                         <span className="text-xs text-textSoft">{job.tipo || '-'}</span>
                       </div>
-                      {job.erro ? <p className="mt-2 text-sm text-rose-200">{job.erro}</p> : null}
+                      {job.erro_resumo ? <p className="mt-2 text-sm text-rose-200">{job.erro_resumo}</p> : null}
                       <p className="mt-1 text-xs text-textSoft">{formatDateTime(job.created_at || job.criado_em)}</p>
                     </div>
                   ))}

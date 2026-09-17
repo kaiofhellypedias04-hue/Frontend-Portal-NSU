@@ -7,6 +7,7 @@ import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
 import { TableSkeleton } from '../components/ui/Skeleton';
 import { useCancelarProcesso, useProcessos } from '../hooks/useProcessos';
+import { useAuth } from '../hooks/useAuth';
 import { api } from '../lib/api';
 import { formatDateTime } from '../lib/format';
 import type { EmpresasResumoOperacionalFilters, Processo } from '../types/api';
@@ -16,6 +17,7 @@ import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 
 export function Processos() {
   const { data: processos = [], isLoading } = useProcessos({ limit: 100 });
+  const { podeOperar } = useAuth();
   const cancelar = useCancelarProcesso();
   const [selectedProcesso, setSelectedProcesso] = useState<Processo | null>(null);
   const [processToCancel, setProcessToCancel] = useState<number | null>(null);
@@ -115,7 +117,7 @@ export function Processos() {
                     variant="danger"
                     className="mt-3 w-full"
                     onClick={(event) => { event.stopPropagation(); setProcessToCancel(p.id); }}
-                    disabled={cancelar.isPending}
+                    disabled={cancelar.isPending || !podeOperar}
                   >
                     <StopCircle size={16} /> Cancelar
                   </Button>
@@ -141,7 +143,7 @@ export function Processos() {
                     <td className="max-w-[260px] truncate px-4 py-4 text-danger">{p.erro_resumo || '-'}</td>
                     <td className="px-4 py-4 text-right">
                       {podeCancelar(p) ? (
-                        <Button variant="danger" onClick={(event) => { event.stopPropagation(); setProcessToCancel(p.id); }} disabled={cancelar.isPending}>
+                        <Button variant="danger" onClick={(event) => { event.stopPropagation(); setProcessToCancel(p.id); }} disabled={cancelar.isPending || !podeOperar}>
                           <StopCircle size={16} /> Cancelar
                         </Button>
                       ) : null}

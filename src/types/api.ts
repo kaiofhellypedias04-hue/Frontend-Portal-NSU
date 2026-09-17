@@ -6,7 +6,11 @@ export type Usuario = {
   ativo: boolean;
   grupo: string;
   is_admin: boolean;
+  /** Papel RBAC do backend: admin, operador ou leitura. Ausente em backends antigos. */
+  papel?: UsuarioPapel;
 };
+
+export type UsuarioPapel = 'admin' | 'operador' | 'leitura';
 
 export type LoginRequest = { email: string; senha: string };
 
@@ -114,7 +118,8 @@ export type Processo = {
   limite?: number | null;
   pausa?: number | null;
   gerar_pdf_espelho: boolean;
-  baixar_pdf_oficial: boolean;
+  /** Legado: o download do PDF oficial do ADN foi desativado; o backend devolve sempre false. */
+  baixar_pdf_oficial?: boolean;
   erro_resumo?: string | null;
   criado_em?: string | null;
   atualizado_em?: string | null;
@@ -145,10 +150,16 @@ export type ProcessoSummary = {
 export type ProcessoJob = {
   id: number;
   processo_id?: number | null;
+  empresa_id?: number | null;
+  certificado_id?: number | null;
   status?: string | null;
   tipo?: string | null;
-  payload?: Record<string, unknown> | null;
-  erro?: string | null;
+  attempts?: number | null;
+  available_at?: string | null;
+  locked_by?: string | null;
+  locked_at?: string | null;
+  payload_json?: Record<string, unknown> | null;
+  erro_resumo?: string | null;
   criado_em?: string | null;
   atualizado_em?: string | null;
   created_at?: string | null;
@@ -353,8 +364,19 @@ export type ConsultaIniciarPayload = {
   limite?: number;
   pausa?: number;
   gerar_pdf_espelho?: boolean;
-  baixar_pdf_oficial?: boolean;
-  resetar_fila?: boolean;
+};
+
+export type NotaEventosSyncResponse = {
+  nota_id: number;
+  chave: string;
+  status_anterior?: string | null;
+  status_atual?: string | null;
+  status_processamento?: string | null;
+  documentos: number;
+  eventos_aplicados: number;
+  eventos_ignorados: number;
+  pdf_regenerado: boolean;
+  erros: string[];
 };
 
 export type ConsultaDesativarPayload = {

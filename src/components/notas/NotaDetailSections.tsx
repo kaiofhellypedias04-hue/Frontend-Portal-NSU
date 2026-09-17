@@ -1,6 +1,6 @@
-import { Calculator, ClipboardCheck, Download, ExternalLink, FileCode2, FileText, Files, LayoutDashboard, Loader2, Save } from 'lucide-react';
+import { Calculator, ClipboardCheck, Download, ExternalLink, FileCode2, FileText, Files, LayoutDashboard, Loader2, RefreshCw, Save } from 'lucide-react';
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import { useDrawerExpanded } from '../ui/Drawer';
@@ -231,12 +231,26 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
   const [alertasFiscais, setAlertasFiscais] = useState(Array.isArray(nota.alertas_fiscais) ? nota.alertas_fiscais.join('\n') : nota.alertas_fiscais || '');
   const salvar = useSalvarConferenciaNota();
   const { operator } = useOperatorContext();
-  const { usuario } = useAuth();
+  const { usuario, podeOperar } = useAuth();
   const [retificando, setRetificando] = useState(false);
 
   const arquivosQuery = useQuery({
     queryKey: ['nota-arquivos', nota.id],
     queryFn: () => api.getNotaArquivos(nota.id),
+  });
+  const queryClient = useQueryClient();
+  const { podeOperar: podeSincronizar } = useAuth();
+  const sincronizarEventos = useMutation({
+    mutationFn: () => api.sincronizarEventosNota(nota.id),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['nota-eventos', nota.id] }),
+        queryClient.invalidateQueries({ queryKey: ['nota-detalhe', nota.id] }),
+        queryClient.invalidateQueries({ queryKey: ['nota-arquivos', nota.id] }),
+        queryClient.invalidateQueries({ queryKey: ['conferencia-notas-infinite'] }),
+        queryClient.invalidateQueries({ queryKey: ['notas-infinite'] }),
+      ]);
+    },
   });
   const eventosQuery = useQuery({
     queryKey: ['nota-eventos', nota.id],
@@ -414,9 +428,10 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
           {salvar.isError ? <div className="rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">Nao foi possivel salvar: {salvar.error.message}</div> : null}
           {salvar.isSuccess ? <div className="rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">{retificando ? 'Retificacao salva.' : 'Analise salva.'}</div> : null}
           {jaAnalisada && !retificando ? <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 p-3 text-sm text-amber-200">Esta nota ja foi analisada por {nota.responsavel}. Para alterar, inicie uma retificacao.</div> : null}
+          {!podeOperar ? <div className="rounded-xl border border-borderSoft bg-slate-950/30 p-3 text-sm text-textSoft">Seu perfil e somente leitura: a analise fiscal e registrada por um operador.</div> : null}
           <div className="flex flex-col justify-end gap-2 sm:flex-row">
-            {jaAnalisada && !retificando ? <Button variant="secondary" onClick={() => { setRetificando(true); salvar.reset(); }} disabled={salvar.isPending}><span aria-hidden="true">↻</span> Retificar analise</Button> : null}
-            {(!jaAnalisada || retificando) ? <Button variant="primary" onClick={save} disabled={salvar.isPending}>
+            {jaAnalisada && !retificando ? <Button variant="secondary" onClick={() => { setRetificando(true); salvar.reset(); }} disabled={salvar.isPending || !podeOperar}><span aria-hidden="true">↻</span> Retificar analise</Button> : null}
+            {(!jaAnalisada || retificando) ? <Button variant="primary" onClick={save} disabled={salvar.isPending || !podeOperar}>
               {salvar.isPending ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
               {retificando ? `Salvar retificacao${usuario?.nome ? ` de ${usuario.nome}` : ''}` : 'Salvar analise'}
             </Button> : null}
@@ -445,7 +460,23 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
       </section> : null}
 
       {(!expanded || expandedTab === 'arquivos') ? <section className={sectionClass('lg:col-span-6')}>
-        <h3 className="mb-3 text-base font-semibold text-white">Eventos da nota</h3>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-base font-semibold text-white">Eventos da nota</h3>
+          {podeSincronizar ? (
+            <Button variant="secondary" className="px-3" onClick={() => sincronizarEventos.mutate()} disabled={sincronizarEventos.isPending} title="Consulta o ADN agora e aplica cancelamento ou substituicao nesta nota">
+              {sincronizarEventos.isPending ? <Loader2 className="animate-spin" size={16} /> : <RefreshCw size={16} />}
+              Verificar eventos no ADN
+            </Button>
+          ) : null}
+        </div>
+        {sincronizarEventos.isError ? <div className="mb-3 rounded-xl border border-rose-400/30 bg-rose-400/10 p-3 text-sm text-rose-200">{sincronizarEventos.error.message}</div> : null}
+        {sincronizarEventos.isSuccess ? (
+          <div className="mb-3 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3 text-sm text-emerald-200">
+            {sincronizarEventos.data.eventos_aplicados > 0
+              ? `${sincronizarEventos.data.eventos_aplicados} evento(s) aplicado(s). Status: ${sincronizarEventos.data.status_anterior || '-'} → ${sincronizarEventos.data.status_atual || '-'}${sincronizarEventos.data.pdf_regenerado ? ' (PDF regenerado com carimbo)' : ''}.`
+              : 'ADN consultado: nenhum evento novo para esta nota.'}
+          </div>
+        ) : null}
         {eventosQuery.isLoading ? (
           <div className="flex items-center gap-2 text-sm text-textSoft"><Loader2 className="animate-spin" size={16} /> Carregando eventos...</div>
         ) : eventosQuery.error ? (
