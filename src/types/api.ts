@@ -189,6 +189,8 @@ export type Nota = {
   numero_nfse?: string | null;
   tipo?: string | null;
   tipo_nota?: TipoNota | string | null;
+  /** Enviado pelo backend: 'emitida' (empresa e prestadora) ou 'recebida' (empresa e tomadora). */
+  nota_tipo?: 'emitida' | 'recebida' | string | null;
   direcao_nota?: DirecaoNota | string | null;
   data_emissao?: string | null;
   entrada?: string | null;

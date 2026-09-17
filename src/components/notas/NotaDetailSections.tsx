@@ -333,7 +333,7 @@ export function NotaDetailSections({ nota }: { nota: Nota }) {
         <h3 className="mb-3 text-base font-semibold text-white">Resumo da nota</h3>
         <div className={`grid gap-2.5 sm:grid-cols-2 ${expanded ? '2xl:grid-cols-3' : ''}`}>
           <Row label="Numero" value={nota.numero_nfse || nota.numero_nota || nota.numero} />
-          <Row label="Tipo" value={nota.tipo} />
+          <Row label="Tipo" value={nota.nota_tipo ? (nota.nota_tipo === 'emitida' ? 'Emitida (serviço prestado)' : nota.nota_tipo === 'recebida' ? 'Recebida (serviço tomado)' : nota.nota_tipo) : nota.tipo_nota || nota.tipo} />
           <Row label="Competencia" value={formatDate(nota.competencia)} />
           <Row label="Emissao" value={formatDate(nota.data_emissao)} />
           <Row label="Empresa" value={nota.empresa_nome ?? '-'} />
